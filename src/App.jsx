@@ -10,25 +10,25 @@ const UW_LIMITS = {
     { ageMax: 69, noEvidence: 500000,  gpq: 750000,  gpr: 1500000 },
   ],
   ip: [
-    { ageMax: 39, noEvidence: 6250,  tmi: 10000 },
-    { ageMax: 49, noEvidence: 2500,  tmi: 6250  },
-    { ageMax: 99, noEvidence: 2000,  tmi: 5000  },
+    { ageMax: 39, noEvidence: 6250, tmi: 10000 },
+    { ageMax: 49, noEvidence: 2500, tmi: 6250  },
+    { ageMax: 99, noEvidence: 2000, tmi: 5000  },
   ],
 };
 
 const BMI_BANDS = [
-  { min: 0,    max: 17.4, label: "Very Underweight", flag: "red",    note: "Likely decline or heavy loading." },
-  { min: 17.5, max: 19.9, label: "Underweight",      flag: "amber",  note: "Standard terms unlikely." },
-  { min: 20,   max: 32.4, label: "Normal",            flag: "green",  note: "Standard terms expected." },
-  { min: 32.5, max: 34.9, label: "Obese Class I",    flag: "amber",  note: "Loading possible — get pre-sale UW." },
-  { min: 35,   max: 37.4, label: "Obese Class II",   flag: "amber",  note: "Loading likely — pre-sale UW required." },
-  { min: 37.5, max: 999,  label: "Severely Obese",   flag: "red",    note: "Decline likely, especially CI and IP." },
+  { min: 0,    max: 17.4, label: "Very Underweight", flag: "red",   note: "Likely decline or heavy loading." },
+  { min: 17.5, max: 19.9, label: "Underweight",      flag: "amber", note: "Standard terms unlikely." },
+  { min: 20,   max: 32.4, label: "Normal",            flag: "green", note: "Standard terms expected." },
+  { min: 32.5, max: 34.9, label: "Obese Class I",    flag: "amber", note: "Loading possible — get pre-sale UW." },
+  { min: 35,   max: 37.4, label: "Obese Class II",   flag: "amber", note: "Loading likely — pre-sale UW required." },
+  { min: 37.5, max: 999,  label: "Severely Obese",   flag: "red",   note: "Decline likely, especially CI and IP." },
 ];
 
 const FC = { green: "#16a34a", amber: "#d97706", red: "#dc2626" };
 const UWC = { none: "#16a34a", gpq: "#d97706", gpr: "#dc2626", medical: "#dc2626", tmi: "#d97706", nse: "#dc2626" };
 
-function bmi(hCm, wKg) {
+function calcBMI(hCm, wKg) {
   if (!hCm || !wKg) return null;
   const h = parseFloat(hCm) / 100;
   const w = parseFloat(wKg);
@@ -41,7 +41,7 @@ function bmiBand(b) {
   return BMI_BANDS.find(x => b >= x.min && b <= x.max) || BMI_BANDS[BMI_BANDS.length - 1];
 }
 
-function age(day, month, year) {
+function calcAge(day, month, year) {
   if (!day || !month || !year || year.length < 4) return null;
   const t = new Date(), b = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
   if (isNaN(b.getTime())) return null;
@@ -50,7 +50,23 @@ function age(day, month, year) {
   return a >= 0 && a < 120 ? a : null;
 }
 
-function uwFlag(type, personAge, amount) {
+// UK State Pension Age based on DOB
+function getStatePensionAge(day, month, year) {
+  if (!day || !month || !year || year.length < 4) return null;
+  const dob = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  if (isNaN(dob.getTime())) return null;
+  // Current rules:
+  // Born before 6 Apr 1960: SPA = 66
+  // Born 6 Apr 1960 to 5 Apr 1977: SPA = 67 (rising between 2026-2028)
+  // Born 6 Apr 1977 onwards: SPA = 68 (rising between 2044-2046)
+  const apr1960 = new Date(1960, 3, 6);
+  const apr1977 = new Date(1977, 3, 6);
+  if (dob < apr1960) return 66;
+  if (dob < apr1977) return 67;
+  return 68;
+}
+
+function getUWFlag(type, personAge, amount) {
   const limits = UW_LIMITS[type];
   if (!limits || !personAge || !amount) return null;
   const band = limits.find(b => personAge <= b.ageMax) || limits[limits.length - 1];
@@ -67,54 +83,73 @@ function uwFlag(type, personAge, amount) {
 
 function isSE(t) { return t === "self_employed" || t === "director" || t === "contractor"; }
 
-// ── Styles ────────────────────────────────────────────────────────────────────
-const S = {
-  page:    { minHeight: "100vh", background: "#f1f5f9", fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", paddingBottom: 60 },
-  header:  { background: "linear-gradient(135deg,#6366f1,#4f46e5)", padding: "20px 20px 18px" },
-  h1:      { fontSize: 20, fontWeight: 700, color: "#fff", margin: 0 },
-  h1sub:   { fontSize: 13, color: "rgba(255,255,255,0.72)", margin: "3px 0 0 0" },
-  wrap:    { maxWidth: 640, margin: "0 auto", padding: "16px 14px" },
-  card:    { background: "#fff", borderRadius: 16, padding: 20, marginBottom: 14, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" },
-  cardH:   { fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#6366f1", margin: "0 0 18px 0" },
-  lbl:     { fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 5, display: "block" },
-  inp:     { background: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: 10, color: "#1e293b", padding: "11px 13px", fontSize: 15, outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "inherit", WebkitAppearance: "none", appearance: "none" },
-  row2:    { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 },
-  row1:    { marginBottom: 12 },
-  sub:     { background: "#f8fafc", borderRadius: 12, padding: 14, marginBottom: 10 },
-  subH:    { fontSize: 13, fontWeight: 600, color: "#64748b", margin: "0 0 12px 0" },
-  addBtn:  { background: "transparent", border: "1.5px dashed #6366f1", color: "#6366f1", borderRadius: 10, padding: "10px", fontSize: 13, fontWeight: 600, cursor: "pointer", width: "100%", marginTop: 4 },
-  remBtn:  { background: "#fee2e2", border: "none", color: "#dc2626", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" },
-  genBtn:  { background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 700, padding: 18, cursor: "pointer", width: "100%", boxShadow: "0 4px 14px rgba(99,102,241,0.3)" },
-  flag:    (c) => ({ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, padding: "11px 13px", background: c + "10", borderLeft: "3px solid " + c, borderRadius: 8, marginBottom: 8, fontSize: 13 }),
-  badge:   (c) => ({ background: c + "15", border: "1px solid " + c + "40", color: c, borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }),
-  ageTag:  { fontSize: 12, color: "#6366f1", fontWeight: 600, margin: "5px 0 0 0" },
-  bmiTag:  (c) => ({ fontSize: 12, fontWeight: 600, color: FC[c] || "#64748b", margin: "5px 0 0 0" }),
-  chk:     { display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 14, color: "#475569" },
-  out:     { background: "#fff", borderRadius: 16, padding: 22, marginTop: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" },
-  outH:    { fontSize: 15, fontWeight: 700, color: "#1e293b", margin: "0 0 14px 0" },
-  pre:     { fontSize: 14, lineHeight: 1.85, color: "#334155", whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 },
-  err:     { background: "#fee2e2", border: "1px solid #fca5a5", borderRadius: 12, padding: 14, color: "#dc2626", fontSize: 13, marginTop: 14 },
-  spin:    { display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: 28, color: "#94a3b8", fontSize: 14 },
-};
-
-// ── These components are defined OUTSIDE App — critical for keyboard stability ──
-
-function Inp({ value, onChange, type, placeholder, iref }) {
-  return <input ref={iref} style={S.inp} value={value} onChange={e => onChange(e.target.value)} type={type || "text"} placeholder={placeholder || ""} />;
+// Unit conversions
+function ftInToCm(ft, inches) {
+  const f = parseFloat(ft) || 0;
+  const i = parseFloat(inches) || 0;
+  return ((f * 12 + i) * 2.54).toFixed(1);
+}
+function stLbsToKg(st, lbs) {
+  const s = parseFloat(st) || 0;
+  const l = parseFloat(lbs) || 0;
+  return ((s * 14 + l) * 0.453592).toFixed(1);
 }
 
+// ── Styles ────────────────────────────────────────────────────────────────────
+const S = {
+  page:   { minHeight: "100vh", background: "#f1f5f9", fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", paddingBottom: 60 },
+  header: { background: "linear-gradient(135deg,#6366f1,#4f46e5)", padding: "20px 20px 18px" },
+  h1:     { fontSize: 20, fontWeight: 700, color: "#fff", margin: 0 },
+  h1sub:  { fontSize: 13, color: "rgba(255,255,255,0.72)", margin: "3px 0 0 0" },
+  wrap:   { maxWidth: 640, margin: "0 auto", padding: "16px 14px" },
+  card:   { background: "#fff", borderRadius: 16, padding: 20, marginBottom: 14, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" },
+  cardH:  { fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#6366f1", margin: "0 0 18px 0" },
+  lbl:    { fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 5, display: "block" },
+  inp:    { background: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: 10, color: "#1e293b", padding: "11px 13px", fontSize: 15, outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "inherit", WebkitAppearance: "none", appearance: "none" },
+  row2:   { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 },
+  row3:   { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 12 },
+  row1:   { marginBottom: 12 },
+  sub:    { background: "#f8fafc", borderRadius: 12, padding: 14, marginBottom: 10 },
+  subH:   { fontSize: 13, fontWeight: 600, color: "#64748b", margin: "0 0 12px 0" },
+  addBtn: { background: "transparent", border: "1.5px dashed #6366f1", color: "#6366f1", borderRadius: 10, padding: "10px", fontSize: 13, fontWeight: 600, cursor: "pointer", width: "100%", marginTop: 4 },
+  remBtn: { background: "#fee2e2", border: "none", color: "#dc2626", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" },
+  genBtn: { background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 700, padding: 18, cursor: "pointer", width: "100%", boxShadow: "0 4px 14px rgba(99,102,241,0.3)" },
+  toggle: { display: "flex", borderRadius: 8, overflow: "hidden", border: "1.5px solid #e2e8f0", marginBottom: 10, width: "fit-content" },
+  toggleBtn: (active) => ({ background: active ? "#6366f1" : "#f8fafc", color: active ? "#fff" : "#64748b", border: "none", padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer" }),
+  flag:   (c) => ({ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, padding: "11px 13px", background: c + "10", borderLeft: "3px solid " + c, borderRadius: 8, marginBottom: 8, fontSize: 13 }),
+  badge:  (c) => ({ background: c + "15", border: "1px solid " + c + "40", color: c, borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }),
+  ageTag: { fontSize: 12, color: "#6366f1", fontWeight: 600, margin: "5px 0 8px 0" },
+  bmiTag: (c) => ({ fontSize: 12, fontWeight: 600, color: FC[c] || "#64748b", margin: "5px 0 8px 0" }),
+  chk:    { display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 14, color: "#475569" },
+  out:    { background: "#fff", borderRadius: 16, padding: 22, marginTop: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" },
+  outH:   { fontSize: 15, fontWeight: 700, color: "#1e293b", margin: "0 0 14px 0" },
+  pre:    { fontSize: 14, lineHeight: 1.85, color: "#334155", whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 },
+  err:    { background: "#fee2e2", border: "1px solid #fca5a5", borderRadius: 12, padding: 14, color: "#dc2626", fontSize: 13, marginTop: 14 },
+  spin:   { display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: 28, color: "#94a3b8", fontSize: 14 },
+  spaTag: { fontSize: 12, color: "#64748b", margin: "4px 0 8px 0" },
+};
+
+// ── Primitive components — defined OUTSIDE App ────────────────────────────────
+function Inp({ value, onChange, type, placeholder }) {
+  return <input style={S.inp} value={value} onChange={e => onChange(e.target.value)} type={type || "text"} placeholder={placeholder || ""} />;
+}
 function Sel({ value, onChange, children }) {
   return <select style={{ ...S.inp, cursor: "pointer" }} value={value} onChange={e => onChange(e.target.value)}>{children}</select>;
 }
-
 function Ta({ value, onChange, placeholder }) {
   return <textarea style={{ ...S.inp, minHeight: 76, resize: "vertical" }} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder || ""} />;
 }
-
 function Lbl({ text }) { return <label style={S.lbl}>{text}</label>; }
-
 function F({ label, children, mb }) {
-  return <div style={{ marginBottom: mb !== undefined ? mb : 12 }}><Lbl text={label} />{children}</div>;
+  return <div style={{ marginBottom: mb !== undefined ? mb : 0 }}><Lbl text={label} />{children}</div>;
+}
+function FlagRow({ label, badge, color }) {
+  return (
+    <div style={S.flag(color)}>
+      <span>{label}</span>
+      <span style={S.badge(color)}>{badge}</span>
+    </div>
+  );
 }
 
 function DOB({ d, m, y, od, om, oy }) {
@@ -140,20 +175,16 @@ function DOB({ d, m, y, od, om, oy }) {
   );
 }
 
-function FlagRow({ label, badge, color }) {
-  return (
-    <div style={S.flag(color)}>
-      <span>{label}</span>
-      <span style={S.badge(color)}>{badge}</span>
-    </div>
-  );
-}
-
-// ── Blank state templates ─────────────────────────────────────────────────────
-const BC = { firstName: "", lastName: "", dobD: "", dobM: "", dobY: "", gender: "", marital: "", smoker: "no", hCm: "", wKg: "", occ: "", empType: "employed", gross: "", takehome: "", outgoings: "", savings: "", sickPay: "", sickDur: "", benefits: "", health: "" };
-const BP = { firstName: "", dobD: "", dobM: "", dobY: "", gender: "", smoker: "no", hCm: "", wKg: "", occ: "", empType: "employed", gross: "", takehome: "", sickPay: "", sickDur: "", health: "" };
+// ── Blank state ───────────────────────────────────────────────────────────────
+const BC = { firstName: "", lastName: "", dobD: "", dobM: "", dobY: "", gender: "", marital: "", smoker: "no", hUnit: "metric", hCm: "", hFt: "", hIn: "", wUnit: "metric", wKg: "", wSt: "", wLbs: "", occ: "", empType: "employed", gross: "", takehome: "", outgoings: "", savings: "", sickPay: "", sickDur: "", benefits: "", health: "" };
+const BP = { firstName: "", dobD: "", dobM: "", dobY: "", gender: "", smoker: "no", hUnit: "metric", hCm: "", hFt: "", hIn: "", wUnit: "metric", wKg: "", wSt: "", wLbs: "", occ: "", empType: "employed", gross: "", takehome: "", sickPay: "", sickDur: "", health: "" };
 const BM = { balance: "", term: "", payment: "", type: "repayment", purpose: "residential" };
 const BX = { type: "", provider: "", amount: "", term: "", premium: "", basis: "single" };
+
+function getHcm(p) { return p.hUnit === "metric" ? parseFloat(p.hCm) : parseFloat(ftInToCm(p.hFt, p.hIn)); }
+function getWkg(p) { return p.wUnit === "metric" ? parseFloat(p.wKg) : parseFloat(stLbsToKg(p.wSt, p.wLbs)); }
+function heightStr(p) { return p.hUnit === "metric" ? `${p.hCm}cm` : `${p.hFt}ft ${p.hIn}in (${ftInToCm(p.hFt, p.hIn)}cm)`; }
+function weightStr(p) { return p.wUnit === "metric" ? `${p.wKg}kg` : `${p.wSt}st ${p.wLbs}lbs (${stLbsToKg(p.wSt, p.wLbs)}kg)`; }
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 export default function App() {
@@ -168,7 +199,6 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
-  // Individual stable setters for client
   const sc = (k) => (v) => setC(p => ({ ...p, [k]: v }));
   const sp = (k) => (v) => setP(p => ({ ...p, [k]: v }));
 
@@ -178,17 +208,23 @@ export default function App() {
     setKidAges(prev => { const a = [...prev]; while (a.length < num) a.push(""); return a.slice(0, num); });
   }
 
-  const cAge = age(C.dobD, C.dobM, C.dobY);
-  const pAge = age(P.dobD, P.dobM, P.dobY);
-  const cBMI = bmi(C.hCm, C.wKg);
-  const pBMI = bmi(P.hCm, P.wKg);
+  const cHcm = getHcm(C);
+  const cWkg = getWkg(C);
+  const pHcm = getHcm(P);
+  const pWkg = getWkg(P);
+  const cBMI = calcBMI(cHcm, cWkg);
+  const pBMI = calcBMI(pHcm, pWkg);
   const cBand = bmiBand(cBMI);
   const pBand = bmiBand(pBMI);
+  const cAge = calcAge(C.dobD, C.dobM, C.dobY);
+  const pAge = calcAge(P.dobD, P.dobM, P.dobY);
+  const cSPA = getStatePensionAge(C.dobD, C.dobM, C.dobY);
+  const pSPA = getStatePensionAge(P.dobD, P.dobM, P.dobY);
   const totalMortgage = mortgages.reduce((s, m) => s + (parseFloat(m.balance) || 0), 0);
   const cIP = parseFloat(C.takehome) || 0;
-  const lifeFlag = cAge && totalMortgage ? uwFlag("life", cAge, totalMortgage) : null;
-  const pLifeFlag = hasP && pAge && totalMortgage ? uwFlag("life", pAge, totalMortgage) : null;
-  const ipFlag = cAge && cIP ? uwFlag("ip", cAge, cIP) : null;
+  const lifeFlag = cAge && totalMortgage ? getUWFlag("life", cAge, totalMortgage) : null;
+  const pLifeFlag = hasP && pAge && totalMortgage ? getUWFlag("life", pAge, totalMortgage) : null;
+  const ipFlag = cAge && cIP ? getUWFlag("ip", cAge, cIP) : null;
 
   function buildPrompt() {
     const kids = numKids > 0 ? `${numKids} child(ren): ${kidAges.map((a, i) => `Child ${i + 1} age ${a}`).join(", ")}` : "None";
@@ -203,30 +239,37 @@ export default function App() {
     return `You are an expert UK protection insurance adviser. Analyse this fact-find and give exactly four sections.
 
 RULES:
-LIFE: If mortgage exists, primary goal = pay it off. Then check if surviving partner income covers remaining outgoings (total outgoings minus mortgage payment). If shortfall, recommend FIB for that monthly amount per person. No mortgage + renting = FIB based on total outgoings inc rent. Single, no dependants = NO standalone life cover. CIC and IP only.
-IP: Cover = net take-home minus ongoing sick pay after deferral. Deferred period: SE/no sick pay + manual trade = 1 month. SE/no sick pay + white collar/office + savings >= 3 months outgoings = 3 months. SE/no sick pay + white collar + low savings = 1 month. Employed: deferral = when sick pay ends. Always full-term own-occupation to state pension age. Never 2-year.
-CIC: Default 12 months net income per person, level term. Always recommend.
-FIB: Where dependent children. Term = years until youngest reaches 21. Amount = monthly shortfall after surviving partner income covers outgoings.
+LIFE INSURANCE: If mortgage exists, primary goal = pay it off if either person dies. After mortgage cleared, calculate remaining outgoings (total outgoings minus mortgage payment). Check if surviving partner income alone covers remaining outgoings. If shortfall, recommend FIB for that monthly shortfall amount per person separately. No mortgage and renting = FIB based on total outgoings including rent. Single with no dependants = NO standalone life insurance. CIC and IP only.
 
+INCOME PROTECTION: Cover = net take-home minus any ongoing sick pay continuing after deferral period ends. Deferred period logic: (1) Self-employed or no sick pay AND manual/trade occupation = 1 month deferred. (2) Self-employed or no sick pay AND white collar/office occupation AND savings >= 3 months of total outgoings = 3 months deferred. (3) Self-employed or no sick pay AND white collar/office AND savings < 3 months outgoings = 1 month deferred. (4) Employed with sick pay = deferred period matches when sick pay ends. Always recommend full-term own-occupation IP to state pension age (shown below for each person). NEVER recommend 2-year payment period IP.
+
+CRITICAL ILLNESS: Default to 12 months net income per person, level term. Always recommend regardless of other cover.
+
+FAMILY INCOME BENEFIT: Recommend where dependent children exist. Term = years until youngest child reaches age 21. Amount = monthly shortfall after surviving partner income covers outgoings.
+
+SINGLE NO DEPENDANTS: No standalone life insurance. Focus on CIC and IP only.
+
+---
 OUTPUT SECTIONS:
 1. RECOMMENDATION - products, amounts, terms, plain English reasoning per product
-2. EXISTING COVER ASSESSMENT - assess each policy, gaps, replace or keep. If none: state no existing cover
-3. UNDERWRITING QUESTIONS - specific questions based on health, BMI, occupation, lifestyle
-4. UNDERWRITING FLAGS - direct flags for loadings, exclusions, postponement or decline
+2. EXISTING COVER ASSESSMENT - assess each policy, gaps, replace or keep. If none say so.
+3. UNDERWRITING QUESTIONS - specific questions based on health, BMI, occupation, lifestyle disclosures
+4. UNDERWRITING FLAGS - direct flags for loadings, exclusions, postponement or decline risks
 
-CLIENT: ${C.firstName} ${C.lastName} | DOB: ${C.dobD}/${C.dobM}/${C.dobY} (Age: ${cAge ?? "unknown"}) | Gender: ${C.gender} | Marital: ${C.marital} | Smoker: ${C.smoker}
-Height: ${C.hCm}cm | Weight: ${C.wKg}kg${cB}
+---
+CLIENT: ${C.firstName} ${C.lastName} | DOB: ${C.dobD}/${C.dobM}/${C.dobY} (Age: ${cAge ?? "unknown"}) | State Pension Age: ${cSPA ?? "unknown"} | Gender: ${C.gender} | Marital: ${C.marital} | Smoker: ${C.smoker}
+Height: ${heightStr(C)} | Weight: ${weightStr(C)}${cB}
 Occupation: ${C.occ} (${C.empType}) | Gross: £${C.gross}/yr | Take-home: £${C.takehome}/month
 Outgoings: £${C.outgoings}/month | Savings: £${C.savings}
 ${cSick}
 Benefits: ${cBen}
 Health: ${C.health || "Nothing disclosed"}
 
-${hasP ? `PARTNER: ${P.firstName} | DOB: ${P.dobD}/${P.dobM}/${P.dobY} (Age: ${pAge ?? "unknown"}) | Gender: ${P.gender} | Smoker: ${P.smoker}
-Height: ${P.hCm}cm | Weight: ${P.wKg}kg${pB}
+${hasP ? `PARTNER: ${P.firstName} | DOB: ${P.dobD}/${P.dobM}/${P.dobY} (Age: ${pAge ?? "unknown"}) | State Pension Age: ${pSPA ?? "unknown"} | Gender: ${P.gender} | Smoker: ${P.smoker}
+Height: ${heightStr(P)} | Weight: ${weightStr(P)}${pB}
 Occupation: ${P.occ} (${P.empType}) | Gross: £${P.gross}/yr | Take-home: £${P.takehome}/month
 ${pSick}
-Health: ${P.health || "Nothing disclosed"}` : "PARTNER: None"}
+Health: ${P.health || "Nothing disclosed"}` : "PARTNER: None / single"}
 
 DEPENDANTS: ${kids}
 MORTGAGES:
@@ -251,6 +294,86 @@ ${existing}`;
     } finally { setLoading(false); }
   }
 
+  function UnitToggle({ val, onChange }) {
+    return (
+      <div style={S.toggle}>
+        <button style={S.toggleBtn(val === "metric")} onClick={() => onChange("metric")}>Metric</button>
+        <button style={S.toggleBtn(val === "imperial")} onClick={() => onChange("imperial")}>Imperial</button>
+      </div>
+    );
+  }
+
+  function HeightInput({ p, onChange }) {
+    if (p.hUnit === "metric") {
+      return <Inp type="number" value={p.hCm} onChange={onChange("hCm")} placeholder="e.g. 175" />;
+    }
+    return (
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        <Inp type="number" value={p.hFt} onChange={onChange("hFt")} placeholder="ft" />
+        <Inp type="number" value={p.hIn} onChange={onChange("hIn")} placeholder="in" />
+      </div>
+    );
+  }
+
+  function WeightInput({ p, onChange }) {
+    if (p.wUnit === "metric") {
+      return <Inp type="number" value={p.wKg} onChange={onChange("wKg")} placeholder="e.g. 80" />;
+    }
+    return (
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        <Inp type="number" value={p.wSt} onChange={onChange("wSt")} placeholder="st" />
+        <Inp type="number" value={p.wLbs} onChange={onChange("wLbs")} placeholder="lbs" />
+      </div>
+    );
+  }
+
+  function PersonFields({ p, onChange, showBenefits }) {
+    const personBMI = calcBMI(getHcm(p), getWkg(p));
+    const personBand = bmiBand(personBMI);
+    const personAge = calcAge(p.dobD, p.dobM, p.dobY);
+    const personSPA = getStatePensionAge(p.dobD, p.dobM, p.dobY);
+    return (
+      <>
+        <div style={{ marginBottom: 12 }}>
+          <Lbl text="Date of Birth" />
+          <DOB d={p.dobD} m={p.dobM} y={p.dobY} od={onChange("dobD")} om={onChange("dobM")} oy={onChange("dobY")} />
+          {personAge !== null && <p style={S.ageTag}>Age: {personAge} — State Pension Age: {personSPA}</p>}
+        </div>
+        <div style={S.row2}>
+          <F label="Gender"><Sel value={p.gender} onChange={onChange("gender")}><option value="">Select…</option><option value="male">Male</option><option value="female">Female</option></Sel></F>
+          <F label="Smoker Status"><Sel value={p.smoker} onChange={onChange("smoker")}><option value="no">Non-smoker</option><option value="yes">Smoker</option><option value="ex">Ex-smoker</option></Sel></F>
+        </div>
+        <div style={S.row1}>
+          <Lbl text="Height" />
+          <UnitToggle val={p.hUnit} onChange={onChange("hUnit")} />
+          <HeightInput p={p} onChange={onChange} />
+        </div>
+        <div style={S.row1}>
+          <Lbl text="Weight" />
+          <UnitToggle val={p.wUnit} onChange={onChange("wUnit")} />
+          <WeightInput p={p} onChange={onChange} />
+          {personBMI && <p style={S.bmiTag(personBand?.flag)}>BMI: {personBMI.toFixed(1)} — {personBand?.label}</p>}
+        </div>
+        <div style={S.row1}><F label="Occupation"><Inp value={p.occ} onChange={onChange("occ")} placeholder="e.g. Accountant, Plumber" /></F></div>
+        <div style={S.row1}><F label="Employment Type"><Sel value={p.empType} onChange={onChange("empType")}><option value="employed">Employed</option><option value="self_employed">Self-employed</option><option value="director">Limited company director</option><option value="contractor">Contractor</option></Sel></F></div>
+        <div style={S.row2}>
+          <F label="Gross Income (£/yr)"><Inp type="number" value={p.gross} onChange={onChange("gross")} placeholder="50000" /></F>
+          <F label="Take-home (£/month)"><Inp type="number" value={p.takehome} onChange={onChange("takehome")} placeholder="3200" /></F>
+        </div>
+        {!isSE(p.empType) && (
+          <div style={S.row2}>
+            <F label="Employer Sick Pay"><Inp value={p.sickPay} onChange={onChange("sickPay")} placeholder="e.g. Full pay" /></F>
+            <F label="Sick Pay Duration"><Inp value={p.sickDur} onChange={onChange("sickDur")} placeholder="e.g. 3 months" /></F>
+          </div>
+        )}
+        {showBenefits && !isSE(p.empType) && (
+          <div style={S.row1}><F label="Employee Benefits"><Ta value={p.benefits} onChange={onChange("benefits")} placeholder="e.g. 4x salary death in service, group IP" /></F></div>
+        )}
+        <div style={S.row1}><F label="Health / Medical History"><Ta value={p.health} onChange={onChange("health")} placeholder="e.g. Type 2 diabetes, well controlled. No other conditions." /></F></div>
+      </>
+    );
+  }
+
   return (
     <div style={S.page}>
       <div style={S.header}>
@@ -264,54 +387,17 @@ ${existing}`;
         <div style={S.card}>
           <p style={S.cardH}>👤 Client Details</p>
           <div style={S.row2}>
-            <F label="First Name" mb={0}><Inp value={C.firstName} onChange={sc("firstName")} placeholder="John" /></F>
-            <F label="Last Name" mb={0}><Inp value={C.lastName} onChange={sc("lastName")} placeholder="Smith" /></F>
-          </div>
-          <div style={{ marginBottom: 12 }}>
-            <Lbl text="Date of Birth" />
-            <DOB d={C.dobD} m={C.dobM} y={C.dobY} od={sc("dobD")} om={sc("dobM")} oy={sc("dobY")} />
-            {cAge !== null && <p style={S.ageTag}>Age: {cAge}</p>}
+            <F label="First Name"><Inp value={C.firstName} onChange={sc("firstName")} placeholder="John" /></F>
+            <F label="Last Name"><Inp value={C.lastName} onChange={sc("lastName")} placeholder="Smith" /></F>
           </div>
           <div style={S.row2}>
-            <F label="Gender" mb={0}><Sel value={C.gender} onChange={sc("gender")}><option value="">Select…</option><option value="male">Male</option><option value="female">Female</option></Sel></F>
-            <F label="Marital Status" mb={0}><Sel value={C.marital} onChange={sc("marital")}><option value="">Select…</option><option>Single</option><option>Married</option><option>Cohabiting</option><option>Divorced</option><option>Widowed</option></Sel></F>
-          </div>
-          <div style={S.row2}>
-            <F label="Smoker Status" mb={0}><Sel value={C.smoker} onChange={sc("smoker")}><option value="no">Non-smoker</option><option value="yes">Smoker</option><option value="ex">Ex-smoker</option></Sel></F>
+            <F label="Marital Status"><Sel value={C.marital} onChange={sc("marital")}><option value="">Select…</option><option>Single</option><option>Married</option><option>Cohabiting</option><option>Divorced</option><option>Widowed</option></Sel></F>
             <div />
           </div>
+          <PersonFields p={C} onChange={sc} showBenefits={true} />
           <div style={S.row2}>
-            <F label="Height (cm)" mb={0}><Inp type="number" value={C.hCm} onChange={sc("hCm")} placeholder="175" /></F>
-            <F label="Weight (kg)" mb={0}><Inp type="number" value={C.wKg} onChange={sc("wKg")} placeholder="80" /></F>
-          </div>
-          {cBMI && <p style={S.bmiTag(cBand?.flag)}>BMI: {cBMI.toFixed(1)} — {cBand?.label}</p>}
-          <div style={{ ...S.row1, marginTop: cBMI ? 8 : 0 }}>
-            <F label="Occupation" mb={0}><Inp value={C.occ} onChange={sc("occ")} placeholder="e.g. Accountant, Plumber" /></F>
-          </div>
-          <div style={S.row1}>
-            <F label="Employment Type" mb={0}><Sel value={C.empType} onChange={sc("empType")}><option value="employed">Employed</option><option value="self_employed">Self-employed</option><option value="director">Limited company director</option><option value="contractor">Contractor</option></Sel></F>
-          </div>
-          <div style={S.row2}>
-            <F label="Gross Income (£/yr)" mb={0}><Inp type="number" value={C.gross} onChange={sc("gross")} placeholder="50000" /></F>
-            <F label="Take-home (£/month)" mb={0}><Inp type="number" value={C.takehome} onChange={sc("takehome")} placeholder="3200" /></F>
-          </div>
-          <div style={S.row2}>
-            <F label="Total Outgoings (£/month)" mb={0}><Inp type="number" value={C.outgoings} onChange={sc("outgoings")} placeholder="2500" /></F>
-            <F label="Savings (£)" mb={0}><Inp type="number" value={C.savings} onChange={sc("savings")} placeholder="10000" /></F>
-          </div>
-          {!isSE(C.empType) && (
-            <div style={S.row2}>
-              <F label="Employer Sick Pay" mb={0}><Inp value={C.sickPay} onChange={sc("sickPay")} placeholder="e.g. Full pay" /></F>
-              <F label="Sick Pay Duration" mb={0}><Inp value={C.sickDur} onChange={sc("sickDur")} placeholder="e.g. 3 months" /></F>
-            </div>
-          )}
-          {!isSE(C.empType) && (
-            <div style={S.row1}>
-              <F label="Employee Benefits" mb={0}><Ta value={C.benefits} onChange={sc("benefits")} placeholder="e.g. 4x salary death in service" /></F>
-            </div>
-          )}
-          <div style={S.row1}>
-            <F label="Health / Medical History" mb={0}><Ta value={C.health} onChange={sc("health")} placeholder="e.g. Type 2 diabetes, well controlled. No other conditions." /></F>
+            <F label="Total Outgoings (£/month)"><Inp type="number" value={C.outgoings} onChange={sc("outgoings")} placeholder="2500" /></F>
+            <F label="Savings (£)"><Inp type="number" value={C.savings} onChange={sc("savings")} placeholder="10000" /></F>
           </div>
         </div>
 
@@ -323,42 +409,10 @@ ${existing}`;
             Include a partner on this case
           </label>
           {hasP && <>
-            <div style={{ ...S.row1, marginTop: 4 }}>
-              <F label="First Name" mb={0}><Inp value={P.firstName} onChange={sp("firstName")} placeholder="Jane" /></F>
+            <div style={{ ...S.row1, marginTop: 14 }}>
+              <F label="First Name"><Inp value={P.firstName} onChange={sp("firstName")} placeholder="Jane" /></F>
             </div>
-            <div style={{ marginBottom: 12 }}>
-              <Lbl text="Date of Birth" />
-              <DOB d={P.dobD} m={P.dobM} y={P.dobY} od={sp("dobD")} om={sp("dobM")} oy={sp("dobY")} />
-              {pAge !== null && <p style={S.ageTag}>Age: {pAge}</p>}
-            </div>
-            <div style={S.row2}>
-              <F label="Gender" mb={0}><Sel value={P.gender} onChange={sp("gender")}><option value="">Select…</option><option value="male">Male</option><option value="female">Female</option></Sel></F>
-              <F label="Smoker Status" mb={0}><Sel value={P.smoker} onChange={sp("smoker")}><option value="no">Non-smoker</option><option value="yes">Smoker</option><option value="ex">Ex-smoker</option></Sel></F>
-            </div>
-            <div style={S.row2}>
-              <F label="Height (cm)" mb={0}><Inp type="number" value={P.hCm} onChange={sp("hCm")} placeholder="165" /></F>
-              <F label="Weight (kg)" mb={0}><Inp type="number" value={P.wKg} onChange={sp("wKg")} placeholder="65" /></F>
-            </div>
-            {pBMI && <p style={S.bmiTag(pBand?.flag)}>BMI: {pBMI.toFixed(1)} — {pBand?.label}</p>}
-            <div style={{ ...S.row1, marginTop: pBMI ? 8 : 0 }}>
-              <F label="Occupation" mb={0}><Inp value={P.occ} onChange={sp("occ")} placeholder="e.g. Teacher" /></F>
-            </div>
-            <div style={S.row1}>
-              <F label="Employment Type" mb={0}><Sel value={P.empType} onChange={sp("empType")}><option value="employed">Employed</option><option value="self_employed">Self-employed</option><option value="director">Limited company director</option><option value="contractor">Contractor</option></Sel></F>
-            </div>
-            <div style={S.row2}>
-              <F label="Gross Income (£/yr)" mb={0}><Inp type="number" value={P.gross} onChange={sp("gross")} placeholder="35000" /></F>
-              <F label="Take-home (£/month)" mb={0}><Inp type="number" value={P.takehome} onChange={sp("takehome")} placeholder="2400" /></F>
-            </div>
-            {!isSE(P.empType) && (
-              <div style={S.row2}>
-                <F label="Employer Sick Pay" mb={0}><Inp value={P.sickPay} onChange={sp("sickPay")} /></F>
-                <F label="Sick Pay Duration" mb={0}><Inp value={P.sickDur} onChange={sp("sickDur")} /></F>
-              </div>
-            )}
-            <div style={S.row1}>
-              <F label="Health / Medical History" mb={0}><Ta value={P.health} onChange={sp("health")} placeholder="e.g. No issues disclosed." /></F>
-            </div>
+            <PersonFields p={P} onChange={sp} showBenefits={false} />
           </>}
         </div>
 
@@ -366,7 +420,7 @@ ${existing}`;
         <div style={S.card}>
           <p style={S.cardH}>👶 Dependant Children</p>
           <div style={S.row2}>
-            <F label="Number of children" mb={0}>
+            <F label="Number of children">
               <Sel value={numKids} onChange={setKids}>
                 {[0, 1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n === 0 ? "None" : n}</option>)}
               </Sel>
@@ -375,7 +429,7 @@ ${existing}`;
           </div>
           {kidAges.map((a, i) => (
             <div key={i} style={S.row2}>
-              <F label={`Child ${i + 1} — Age (years)`} mb={0}>
+              <F label={`Child ${i + 1} — Age (years)`}>
                 <Inp type="number" value={a} onChange={v => setKidAges(p => p.map((x, idx) => idx === i ? v : x))} placeholder="e.g. 5" />
               </F>
               <div />
@@ -392,14 +446,14 @@ ${existing}`;
                 <p style={S.subH}>Mortgage {i + 1}</p>
                 {mortgages.length > 1 && <button style={S.remBtn} onClick={() => setMortgages(p => p.filter((_, idx) => idx !== i))}>Remove</button>}
               </div>
-              <div style={S.row1}><F label="Outstanding Balance (£)" mb={0}><Inp type="number" value={m.balance} onChange={v => setMortgages(p => p.map((x, idx) => idx === i ? { ...x, balance: v } : x))} placeholder="250000" /></F></div>
+              <div style={S.row1}><F label="Outstanding Balance (£)"><Inp type="number" value={m.balance} onChange={v => setMortgages(p => p.map((x, idx) => idx === i ? { ...x, balance: v } : x))} placeholder="250000" /></F></div>
               <div style={S.row2}>
-                <F label="Remaining Term (yrs)" mb={0}><Inp type="number" value={m.term} onChange={v => setMortgages(p => p.map((x, idx) => idx === i ? { ...x, term: v } : x))} placeholder="25" /></F>
-                <F label="Monthly Payment (£)" mb={0}><Inp type="number" value={m.payment} onChange={v => setMortgages(p => p.map((x, idx) => idx === i ? { ...x, payment: v } : x))} placeholder="1200" /></F>
+                <F label="Remaining Term (yrs)"><Inp type="number" value={m.term} onChange={v => setMortgages(p => p.map((x, idx) => idx === i ? { ...x, term: v } : x))} placeholder="25" /></F>
+                <F label="Monthly Payment (£)"><Inp type="number" value={m.payment} onChange={v => setMortgages(p => p.map((x, idx) => idx === i ? { ...x, payment: v } : x))} placeholder="1200" /></F>
               </div>
               <div style={S.row2}>
-                <F label="Repayment Type" mb={0}><Sel value={m.type} onChange={v => setMortgages(p => p.map((x, idx) => idx === i ? { ...x, type: v } : x))}><option value="repayment">Repayment</option><option value="interest_only">Interest Only</option><option value="part_and_part">Part & Part</option></Sel></F>
-                <F label="Purpose" mb={0}><Sel value={m.purpose} onChange={v => setMortgages(p => p.map((x, idx) => idx === i ? { ...x, purpose: v } : x))}><option value="residential">Residential</option><option value="btl">Buy to Let</option><option value="commercial">Commercial</option></Sel></F>
+                <F label="Repayment Type"><Sel value={m.type} onChange={v => setMortgages(p => p.map((x, idx) => idx === i ? { ...x, type: v } : x))}><option value="repayment">Repayment</option><option value="interest_only">Interest Only</option><option value="part_and_part">Part & Part</option></Sel></F>
+                <F label="Purpose"><Sel value={m.purpose} onChange={v => setMortgages(p => p.map((x, idx) => idx === i ? { ...x, purpose: v } : x))}><option value="residential">Residential</option><option value="btl">Buy to Let</option><option value="commercial">Commercial</option></Sel></F>
               </div>
             </div>
           ))}
@@ -415,16 +469,16 @@ ${existing}`;
                 <p style={S.subH}>Policy {i + 1}</p>
                 <button style={S.remBtn} onClick={() => setCover(p => p.filter((_, idx) => idx !== i))}>Remove</button>
               </div>
-              <div style={S.row1}><F label="Cover Type" mb={0}><Sel value={x.type} onChange={v => setCover(p => p.map((c, idx) => idx === i ? { ...c, type: v } : c))}><option value="">Select…</option><option>Decreasing Life Insurance</option><option>Level Life Insurance</option><option>Critical Illness Cover</option><option>Income Protection</option><option>Family Income Benefit</option><option>Whole of Life</option><option>Other</option></Sel></F></div>
+              <div style={S.row1}><F label="Cover Type"><Sel value={x.type} onChange={v => setCover(p => p.map((c, idx) => idx === i ? { ...c, type: v } : c))}><option value="">Select…</option><option>Decreasing Life Insurance</option><option>Level Life Insurance</option><option>Critical Illness Cover</option><option>Income Protection</option><option>Family Income Benefit</option><option>Whole of Life</option><option>Other</option></Sel></F></div>
               <div style={S.row2}>
-                <F label="Provider" mb={0}><Inp value={x.provider} onChange={v => setCover(p => p.map((c, idx) => idx === i ? { ...c, provider: v } : c))} placeholder="Aviva" /></F>
-                <F label="Basis" mb={0}><Sel value={x.basis} onChange={v => setCover(p => p.map((c, idx) => idx === i ? { ...c, basis: v } : c))}><option value="single">Single life</option><option value="joint">Joint life</option></Sel></F>
+                <F label="Provider"><Inp value={x.provider} onChange={v => setCover(p => p.map((c, idx) => idx === i ? { ...c, provider: v } : c))} placeholder="Aviva" /></F>
+                <F label="Basis"><Sel value={x.basis} onChange={v => setCover(p => p.map((c, idx) => idx === i ? { ...c, basis: v } : c))}><option value="single">Single life</option><option value="joint">Joint life</option></Sel></F>
               </div>
               <div style={S.row2}>
-                <F label="Sum Assured (£)" mb={0}><Inp type="number" value={x.amount} onChange={v => setCover(p => p.map((c, idx) => idx === i ? { ...c, amount: v } : c))} placeholder="200000" /></F>
-                <F label="Remaining Term (yrs)" mb={0}><Inp type="number" value={x.term} onChange={v => setCover(p => p.map((c, idx) => idx === i ? { ...c, term: v } : c))} placeholder="20" /></F>
+                <F label="Sum Assured (£)"><Inp type="number" value={x.amount} onChange={v => setCover(p => p.map((c, idx) => idx === i ? { ...c, amount: v } : c))} placeholder="200000" /></F>
+                <F label="Remaining Term (yrs)"><Inp type="number" value={x.term} onChange={v => setCover(p => p.map((c, idx) => idx === i ? { ...c, term: v } : c))} placeholder="20" /></F>
               </div>
-              <div style={S.row1}><F label="Monthly Premium (£)" mb={0}><Inp type="number" value={x.premium} onChange={v => setCover(p => p.map((c, idx) => idx === i ? { ...c, premium: v } : c))} placeholder="45" /></F></div>
+              <div style={S.row1}><F label="Monthly Premium (£)"><Inp type="number" value={x.premium} onChange={v => setCover(p => p.map((c, idx) => idx === i ? { ...c, premium: v } : c))} placeholder="45" /></F></div>
             </div>
           ))}
           <button style={S.addBtn} onClick={() => setCover(p => [...p, { ...BX }])}>+ Add existing policy</button>
