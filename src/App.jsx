@@ -50,15 +50,10 @@ function calcAge(day, month, year) {
   return a >= 0 && a < 120 ? a : null;
 }
 
-// UK State Pension Age based on DOB
 function getStatePensionAge(day, month, year) {
   if (!day || !month || !year || year.length < 4) return null;
   const dob = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
   if (isNaN(dob.getTime())) return null;
-  // Current rules:
-  // Born before 6 Apr 1960: SPA = 66
-  // Born 6 Apr 1960 to 5 Apr 1977: SPA = 67 (rising between 2026-2028)
-  // Born 6 Apr 1977 onwards: SPA = 68 (rising between 2044-2046)
   const apr1960 = new Date(1960, 3, 6);
   const apr1977 = new Date(1977, 3, 6);
   if (dob < apr1960) return 66;
@@ -83,53 +78,52 @@ function getUWFlag(type, personAge, amount) {
 
 function isSE(t) { return t === "self_employed" || t === "director" || t === "contractor"; }
 
-// Unit conversions
 function ftInToCm(ft, inches) {
-  const f = parseFloat(ft) || 0;
-  const i = parseFloat(inches) || 0;
-  return ((f * 12 + i) * 2.54).toFixed(1);
+  return ((parseFloat(ft) || 0) * 12 + (parseFloat(inches) || 0)) * 2.54;
 }
 function stLbsToKg(st, lbs) {
-  const s = parseFloat(st) || 0;
-  const l = parseFloat(lbs) || 0;
-  return ((s * 14 + l) * 0.453592).toFixed(1);
+  return ((parseFloat(st) || 0) * 14 + (parseFloat(lbs) || 0)) * 0.453592;
 }
+function getHcm(p) { return p.hUnit === "metric" ? parseFloat(p.hCm) : ftInToCm(p.hFt, p.hIn); }
+function getWkg(p) { return p.wUnit === "metric" ? parseFloat(p.wKg) : stLbsToKg(p.wSt, p.wLbs); }
+function heightStr(p) { return p.hUnit === "metric" ? `${p.hCm}cm` : `${p.hFt}ft ${p.hIn}in (${ftInToCm(p.hFt, p.hIn).toFixed(1)}cm)`; }
+function weightStr(p) { return p.wUnit === "metric" ? `${p.wKg}kg` : `${p.wSt}st ${p.wLbs}lbs (${stLbsToKg(p.wSt, p.wLbs).toFixed(1)}kg)`; }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const S = {
-  page:   { minHeight: "100vh", background: "#f1f5f9", fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", paddingBottom: 60 },
-  header: { background: "linear-gradient(135deg,#6366f1,#4f46e5)", padding: "20px 20px 18px" },
-  h1:     { fontSize: 20, fontWeight: 700, color: "#fff", margin: 0 },
-  h1sub:  { fontSize: 13, color: "rgba(255,255,255,0.72)", margin: "3px 0 0 0" },
-  wrap:   { maxWidth: 640, margin: "0 auto", padding: "16px 14px" },
-  card:   { background: "#fff", borderRadius: 16, padding: 20, marginBottom: 14, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" },
-  cardH:  { fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#6366f1", margin: "0 0 18px 0" },
-  lbl:    { fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 5, display: "block" },
-  inp:    { background: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: 10, color: "#1e293b", padding: "11px 13px", fontSize: 15, outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "inherit", WebkitAppearance: "none", appearance: "none" },
-  row2:   { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 },
-  row3:   { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 12 },
-  row1:   { marginBottom: 12 },
-  sub:    { background: "#f8fafc", borderRadius: 12, padding: 14, marginBottom: 10 },
-  subH:   { fontSize: 13, fontWeight: 600, color: "#64748b", margin: "0 0 12px 0" },
-  addBtn: { background: "transparent", border: "1.5px dashed #6366f1", color: "#6366f1", borderRadius: 10, padding: "10px", fontSize: 13, fontWeight: 600, cursor: "pointer", width: "100%", marginTop: 4 },
-  remBtn: { background: "#fee2e2", border: "none", color: "#dc2626", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" },
-  genBtn: { background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 700, padding: 18, cursor: "pointer", width: "100%", boxShadow: "0 4px 14px rgba(99,102,241,0.3)" },
-  toggle: { display: "flex", borderRadius: 8, overflow: "hidden", border: "1.5px solid #e2e8f0", marginBottom: 10, width: "fit-content" },
-  toggleBtn: (active) => ({ background: active ? "#6366f1" : "#f8fafc", color: active ? "#fff" : "#64748b", border: "none", padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer" }),
-  flag:   (c) => ({ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, padding: "11px 13px", background: c + "10", borderLeft: "3px solid " + c, borderRadius: 8, marginBottom: 8, fontSize: 13 }),
-  badge:  (c) => ({ background: c + "15", border: "1px solid " + c + "40", color: c, borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }),
-  ageTag: { fontSize: 12, color: "#6366f1", fontWeight: 600, margin: "5px 0 8px 0" },
-  bmiTag: (c) => ({ fontSize: 12, fontWeight: 600, color: FC[c] || "#64748b", margin: "5px 0 8px 0" }),
-  chk:    { display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 14, color: "#475569" },
-  out:    { background: "#fff", borderRadius: 16, padding: 22, marginTop: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" },
-  outH:   { fontSize: 15, fontWeight: 700, color: "#1e293b", margin: "0 0 14px 0" },
-  pre:    { fontSize: 14, lineHeight: 1.85, color: "#334155", whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 },
-  err:    { background: "#fee2e2", border: "1px solid #fca5a5", borderRadius: 12, padding: 14, color: "#dc2626", fontSize: 13, marginTop: 14 },
-  spin:   { display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: 28, color: "#94a3b8", fontSize: 14 },
-  spaTag: { fontSize: 12, color: "#64748b", margin: "4px 0 8px 0" },
+  page:    { minHeight: "100vh", background: "#f1f5f9", fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", paddingBottom: 60 },
+  header:  { background: "linear-gradient(135deg,#6366f1,#4f46e5)", padding: "20px 20px 18px" },
+  h1:      { fontSize: 20, fontWeight: 700, color: "#fff", margin: 0 },
+  h1sub:   { fontSize: 13, color: "rgba(255,255,255,0.72)", margin: "3px 0 0 0" },
+  wrap:    { maxWidth: 640, margin: "0 auto", padding: "16px 14px" },
+  card:    { background: "#fff", borderRadius: 16, padding: 20, marginBottom: 14, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" },
+  cardH:   { fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#6366f1", margin: "0 0 18px 0" },
+  lbl:     { fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 5, display: "block" },
+  inp:     { background: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: 10, color: "#1e293b", padding: "11px 13px", fontSize: 15, outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "inherit", WebkitAppearance: "none", appearance: "none" },
+  row2:    { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 },
+  row1:    { marginBottom: 12 },
+  sub:     { background: "#f8fafc", borderRadius: 12, padding: 14, marginBottom: 10 },
+  subH:    { fontSize: 13, fontWeight: 600, color: "#64748b", margin: "0 0 12px 0" },
+  addBtn:  { background: "transparent", border: "1.5px dashed #6366f1", color: "#6366f1", borderRadius: 10, padding: "10px", fontSize: 13, fontWeight: 600, cursor: "pointer", width: "100%", marginTop: 4 },
+  remBtn:  { background: "#fee2e2", border: "none", color: "#dc2626", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" },
+  genBtn:  { background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 700, padding: 18, cursor: "pointer", width: "100%", boxShadow: "0 4px 14px rgba(99,102,241,0.3)" },
+  togWrap: { display: "flex", borderRadius: 8, overflow: "hidden", border: "1.5px solid #e2e8f0", marginBottom: 8, width: "fit-content" },
+  togOn:   { background: "#6366f1", color: "#fff", border: "none", padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer" },
+  togOff:  { background: "#f8fafc", color: "#64748b", border: "none", padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer" },
+  flag:    (c) => ({ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, padding: "11px 13px", background: c + "10", borderLeft: "3px solid " + c, borderRadius: 8, marginBottom: 8, fontSize: 13 }),
+  badge:   (c) => ({ background: c + "15", border: "1px solid " + c + "40", color: c, borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }),
+  ageTag:  { fontSize: 12, color: "#6366f1", fontWeight: 600, margin: "5px 0 8px 0" },
+  bmiTag:  (c) => ({ fontSize: 12, fontWeight: 600, color: FC[c] || "#64748b", margin: "5px 0 8px 0" }),
+  chk:     { display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 14, color: "#475569" },
+  out:     { background: "#fff", borderRadius: 16, padding: 22, marginTop: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" },
+  outH:    { fontSize: 15, fontWeight: 700, color: "#1e293b", margin: "0 0 14px 0" },
+  pre:     { fontSize: 14, lineHeight: 1.85, color: "#334155", whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 },
+  err:     { background: "#fee2e2", border: "1px solid #fca5a5", borderRadius: 12, padding: 14, color: "#dc2626", fontSize: 13, marginTop: 14 },
+  spin:    { display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: 28, color: "#94a3b8", fontSize: 14 },
 };
 
-// ── Primitive components — defined OUTSIDE App ────────────────────────────────
+// ── ALL components defined outside App — critical for keyboard stability ───────
+
 function Inp({ value, onChange, type, placeholder }) {
   return <input style={S.inp} value={value} onChange={e => onChange(e.target.value)} type={type || "text"} placeholder={placeholder || ""} />;
 }
@@ -140,14 +134,24 @@ function Ta({ value, onChange, placeholder }) {
   return <textarea style={{ ...S.inp, minHeight: 76, resize: "vertical" }} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder || ""} />;
 }
 function Lbl({ text }) { return <label style={S.lbl}>{text}</label>; }
-function F({ label, children, mb }) {
-  return <div style={{ marginBottom: mb !== undefined ? mb : 0 }}><Lbl text={label} />{children}</div>;
+function F({ label, children }) {
+  return <div><Lbl text={label} />{children}</div>;
 }
 function FlagRow({ label, badge, color }) {
   return (
     <div style={S.flag(color)}>
       <span>{label}</span>
       <span style={S.badge(color)}>{badge}</span>
+    </div>
+  );
+}
+
+// Unit toggle — takes two stable onClick handlers, no factories
+function UnitToggle({ isMetric, onMetric, onImperial }) {
+  return (
+    <div style={S.togWrap}>
+      <button style={isMetric ? S.togOn : S.togOff} onClick={onMetric}>Metric</button>
+      <button style={isMetric ? S.togOff : S.togOn} onClick={onImperial}>Imperial</button>
     </div>
   );
 }
@@ -159,17 +163,17 @@ function DOB({ d, m, y, od, om, oy }) {
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1.4fr", gap: 8 }}>
       <div>
         <Lbl text="Day" />
-        <input style={{ ...S.inp, textAlign: "center" }} value={d} placeholder="DD" type="number" maxLength={2}
+        <input style={{ ...S.inp, textAlign: "center" }} value={d} placeholder="DD" type="number"
           onChange={e => { od(e.target.value); if (e.target.value.length === 2) mref.current && mref.current.focus(); }} />
       </div>
       <div>
         <Lbl text="Month" />
-        <input ref={mref} style={{ ...S.inp, textAlign: "center" }} value={m} placeholder="MM" type="number" maxLength={2}
+        <input ref={mref} style={{ ...S.inp, textAlign: "center" }} value={m} placeholder="MM" type="number"
           onChange={e => { om(e.target.value); if (e.target.value.length === 2) yref.current && yref.current.focus(); }} />
       </div>
       <div>
         <Lbl text="Year" />
-        <input ref={yref} style={S.inp} value={y} placeholder="YYYY" type="number" maxLength={4} onChange={e => oy(e.target.value)} />
+        <input ref={yref} style={S.inp} value={y} placeholder="YYYY" type="number" onChange={e => oy(e.target.value)} />
       </div>
     </div>
   );
@@ -180,11 +184,6 @@ const BC = { firstName: "", lastName: "", dobD: "", dobM: "", dobY: "", gender: 
 const BP = { firstName: "", dobD: "", dobM: "", dobY: "", gender: "", smoker: "no", hUnit: "metric", hCm: "", hFt: "", hIn: "", wUnit: "metric", wKg: "", wSt: "", wLbs: "", occ: "", empType: "employed", gross: "", takehome: "", sickPay: "", sickDur: "", health: "" };
 const BM = { balance: "", term: "", payment: "", type: "repayment", purpose: "residential" };
 const BX = { type: "", provider: "", amount: "", term: "", premium: "", basis: "single" };
-
-function getHcm(p) { return p.hUnit === "metric" ? parseFloat(p.hCm) : parseFloat(ftInToCm(p.hFt, p.hIn)); }
-function getWkg(p) { return p.wUnit === "metric" ? parseFloat(p.wKg) : parseFloat(stLbsToKg(p.wSt, p.wLbs)); }
-function heightStr(p) { return p.hUnit === "metric" ? `${p.hCm}cm` : `${p.hFt}ft ${p.hIn}in (${ftInToCm(p.hFt, p.hIn)}cm)`; }
-function weightStr(p) { return p.wUnit === "metric" ? `${p.wKg}kg` : `${p.wSt}st ${p.wLbs}lbs (${stLbsToKg(p.wSt, p.wLbs)}kg)`; }
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 export default function App() {
@@ -199,8 +198,9 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
-  const sc = (k) => (v) => setC(p => ({ ...p, [k]: v }));
-  const sp = (k) => (v) => setP(p => ({ ...p, [k]: v }));
+  // Individual setters — each is a stable function reference
+  const setC_ = (k) => (v) => setC(p => ({ ...p, [k]: v }));
+  const setP_ = (k) => (v) => setP(p => ({ ...p, [k]: v }));
 
   function setKids(n) {
     const num = parseInt(n) || 0;
@@ -208,6 +208,11 @@ export default function App() {
     setKidAges(prev => { const a = [...prev]; while (a.length < num) a.push(""); return a.slice(0, num); });
   }
 
+  // Derived values
+  const cAge = calcAge(C.dobD, C.dobM, C.dobY);
+  const pAge = calcAge(P.dobD, P.dobM, P.dobY);
+  const cSPA = getStatePensionAge(C.dobD, C.dobM, C.dobY);
+  const pSPA = getStatePensionAge(P.dobD, P.dobM, P.dobY);
   const cHcm = getHcm(C);
   const cWkg = getWkg(C);
   const pHcm = getHcm(P);
@@ -216,10 +221,6 @@ export default function App() {
   const pBMI = calcBMI(pHcm, pWkg);
   const cBand = bmiBand(cBMI);
   const pBand = bmiBand(pBMI);
-  const cAge = calcAge(C.dobD, C.dobM, C.dobY);
-  const pAge = calcAge(P.dobD, P.dobM, P.dobY);
-  const cSPA = getStatePensionAge(C.dobD, C.dobM, C.dobY);
-  const pSPA = getStatePensionAge(P.dobD, P.dobM, P.dobY);
   const totalMortgage = mortgages.reduce((s, m) => s + (parseFloat(m.balance) || 0), 0);
   const cIP = parseFloat(C.takehome) || 0;
   const lifeFlag = cAge && totalMortgage ? getUWFlag("life", cAge, totalMortgage) : null;
@@ -239,22 +240,22 @@ export default function App() {
     return `You are an expert UK protection insurance adviser. Analyse this fact-find and give exactly four sections.
 
 RULES:
-LIFE INSURANCE: If mortgage exists, primary goal = pay it off if either person dies. After mortgage cleared, calculate remaining outgoings (total outgoings minus mortgage payment). Check if surviving partner income alone covers remaining outgoings. If shortfall, recommend FIB for that monthly shortfall amount per person separately. No mortgage and renting = FIB based on total outgoings including rent. Single with no dependants = NO standalone life insurance. CIC and IP only.
+LIFE INSURANCE: If mortgage exists, primary goal = pay it off if either person dies. After mortgage cleared, calculate remaining outgoings (total outgoings minus mortgage payment). Check if surviving partner income alone covers remaining outgoings. If shortfall, recommend FIB for that monthly shortfall per person separately. No mortgage and renting = FIB based on total outgoings including rent. Single with no dependants = NO standalone life insurance. CIC and IP only.
 
-INCOME PROTECTION: Cover = net take-home minus any ongoing sick pay continuing after deferral period ends. Deferred period logic: (1) Self-employed or no sick pay AND manual/trade occupation = 1 month deferred. (2) Self-employed or no sick pay AND white collar/office occupation AND savings >= 3 months of total outgoings = 3 months deferred. (3) Self-employed or no sick pay AND white collar/office AND savings < 3 months outgoings = 1 month deferred. (4) Employed with sick pay = deferred period matches when sick pay ends. Always recommend full-term own-occupation IP to state pension age (shown below for each person). NEVER recommend 2-year payment period IP.
+INCOME PROTECTION: Cover = net take-home minus any ongoing sick pay after deferral ends. Deferred period: (1) SE/no sick pay AND manual/trade = 1 month. (2) SE/no sick pay AND white collar/office AND savings >= 3 months outgoings = 3 months. (3) SE/no sick pay AND white collar AND low savings = 1 month. (4) Employed with sick pay = deferral matches when sick pay ends. Always full-term own-occupation IP to state pension age (shown below). NEVER 2-year payment IP.
 
-CRITICAL ILLNESS: Default to 12 months net income per person, level term. Always recommend regardless of other cover.
+CRITICAL ILLNESS: Default 12 months net income per person, level term. Always recommend.
 
-FAMILY INCOME BENEFIT: Recommend where dependent children exist. Term = years until youngest child reaches age 21. Amount = monthly shortfall after surviving partner income covers outgoings.
+FAMILY INCOME BENEFIT: Where dependent children. Term = years until youngest reaches 21. Amount = monthly shortfall after surviving partner income covers outgoings.
 
-SINGLE NO DEPENDANTS: No standalone life insurance. Focus on CIC and IP only.
+SINGLE NO DEPENDANTS: No standalone life insurance. CIC and IP only.
 
 ---
 OUTPUT SECTIONS:
 1. RECOMMENDATION - products, amounts, terms, plain English reasoning per product
-2. EXISTING COVER ASSESSMENT - assess each policy, gaps, replace or keep. If none say so.
-3. UNDERWRITING QUESTIONS - specific questions based on health, BMI, occupation, lifestyle disclosures
-4. UNDERWRITING FLAGS - direct flags for loadings, exclusions, postponement or decline risks
+2. EXISTING COVER ASSESSMENT - assess each policy. If none say so.
+3. UNDERWRITING QUESTIONS - specific questions based on health, BMI, occupation, lifestyle
+4. UNDERWRITING FLAGS - flags for loadings, exclusions, postponement or decline risks
 
 ---
 CLIENT: ${C.firstName} ${C.lastName} | DOB: ${C.dobD}/${C.dobM}/${C.dobY} (Age: ${cAge ?? "unknown"}) | State Pension Age: ${cSPA ?? "unknown"} | Gender: ${C.gender} | Marital: ${C.marital} | Smoker: ${C.smoker}
@@ -294,86 +295,6 @@ ${existing}`;
     } finally { setLoading(false); }
   }
 
-  function UnitToggle({ val, onChange }) {
-    return (
-      <div style={S.toggle}>
-        <button style={S.toggleBtn(val === "metric")} onClick={() => onChange("metric")}>Metric</button>
-        <button style={S.toggleBtn(val === "imperial")} onClick={() => onChange("imperial")}>Imperial</button>
-      </div>
-    );
-  }
-
-  function HeightInput({ p, onChange }) {
-    if (p.hUnit === "metric") {
-      return <Inp type="number" value={p.hCm} onChange={onChange("hCm")} placeholder="e.g. 175" />;
-    }
-    return (
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-        <Inp type="number" value={p.hFt} onChange={onChange("hFt")} placeholder="ft" />
-        <Inp type="number" value={p.hIn} onChange={onChange("hIn")} placeholder="in" />
-      </div>
-    );
-  }
-
-  function WeightInput({ p, onChange }) {
-    if (p.wUnit === "metric") {
-      return <Inp type="number" value={p.wKg} onChange={onChange("wKg")} placeholder="e.g. 80" />;
-    }
-    return (
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-        <Inp type="number" value={p.wSt} onChange={onChange("wSt")} placeholder="st" />
-        <Inp type="number" value={p.wLbs} onChange={onChange("wLbs")} placeholder="lbs" />
-      </div>
-    );
-  }
-
-  function PersonFields({ p, onChange, showBenefits }) {
-    const personBMI = calcBMI(getHcm(p), getWkg(p));
-    const personBand = bmiBand(personBMI);
-    const personAge = calcAge(p.dobD, p.dobM, p.dobY);
-    const personSPA = getStatePensionAge(p.dobD, p.dobM, p.dobY);
-    return (
-      <>
-        <div style={{ marginBottom: 12 }}>
-          <Lbl text="Date of Birth" />
-          <DOB d={p.dobD} m={p.dobM} y={p.dobY} od={onChange("dobD")} om={onChange("dobM")} oy={onChange("dobY")} />
-          {personAge !== null && <p style={S.ageTag}>Age: {personAge} — State Pension Age: {personSPA}</p>}
-        </div>
-        <div style={S.row2}>
-          <F label="Gender"><Sel value={p.gender} onChange={onChange("gender")}><option value="">Select…</option><option value="male">Male</option><option value="female">Female</option></Sel></F>
-          <F label="Smoker Status"><Sel value={p.smoker} onChange={onChange("smoker")}><option value="no">Non-smoker</option><option value="yes">Smoker</option><option value="ex">Ex-smoker</option></Sel></F>
-        </div>
-        <div style={S.row1}>
-          <Lbl text="Height" />
-          <UnitToggle val={p.hUnit} onChange={onChange("hUnit")} />
-          <HeightInput p={p} onChange={onChange} />
-        </div>
-        <div style={S.row1}>
-          <Lbl text="Weight" />
-          <UnitToggle val={p.wUnit} onChange={onChange("wUnit")} />
-          <WeightInput p={p} onChange={onChange} />
-          {personBMI && <p style={S.bmiTag(personBand?.flag)}>BMI: {personBMI.toFixed(1)} — {personBand?.label}</p>}
-        </div>
-        <div style={S.row1}><F label="Occupation"><Inp value={p.occ} onChange={onChange("occ")} placeholder="e.g. Accountant, Plumber" /></F></div>
-        <div style={S.row1}><F label="Employment Type"><Sel value={p.empType} onChange={onChange("empType")}><option value="employed">Employed</option><option value="self_employed">Self-employed</option><option value="director">Limited company director</option><option value="contractor">Contractor</option></Sel></F></div>
-        <div style={S.row2}>
-          <F label="Gross Income (£/yr)"><Inp type="number" value={p.gross} onChange={onChange("gross")} placeholder="50000" /></F>
-          <F label="Take-home (£/month)"><Inp type="number" value={p.takehome} onChange={onChange("takehome")} placeholder="3200" /></F>
-        </div>
-        {!isSE(p.empType) && (
-          <div style={S.row2}>
-            <F label="Employer Sick Pay"><Inp value={p.sickPay} onChange={onChange("sickPay")} placeholder="e.g. Full pay" /></F>
-            <F label="Sick Pay Duration"><Inp value={p.sickDur} onChange={onChange("sickDur")} placeholder="e.g. 3 months" /></F>
-          </div>
-        )}
-        {showBenefits && !isSE(p.empType) && (
-          <div style={S.row1}><F label="Employee Benefits"><Ta value={p.benefits} onChange={onChange("benefits")} placeholder="e.g. 4x salary death in service, group IP" /></F></div>
-        )}
-        <div style={S.row1}><F label="Health / Medical History"><Ta value={p.health} onChange={onChange("health")} placeholder="e.g. Type 2 diabetes, well controlled. No other conditions." /></F></div>
-      </>
-    );
-  }
-
   return (
     <div style={S.page}>
       <div style={S.header}>
@@ -387,18 +308,65 @@ ${existing}`;
         <div style={S.card}>
           <p style={S.cardH}>👤 Client Details</p>
           <div style={S.row2}>
-            <F label="First Name"><Inp value={C.firstName} onChange={sc("firstName")} placeholder="John" /></F>
-            <F label="Last Name"><Inp value={C.lastName} onChange={sc("lastName")} placeholder="Smith" /></F>
+            <F label="First Name"><Inp value={C.firstName} onChange={setC_("firstName")} placeholder="John" /></F>
+            <F label="Last Name"><Inp value={C.lastName} onChange={setC_("lastName")} placeholder="Smith" /></F>
           </div>
           <div style={S.row2}>
-            <F label="Marital Status"><Sel value={C.marital} onChange={sc("marital")}><option value="">Select…</option><option>Single</option><option>Married</option><option>Cohabiting</option><option>Divorced</option><option>Widowed</option></Sel></F>
+            <F label="Marital Status"><Sel value={C.marital} onChange={setC_("marital")}><option value="">Select…</option><option>Single</option><option>Married</option><option>Cohabiting</option><option>Divorced</option><option>Widowed</option></Sel></F>
             <div />
           </div>
-          <PersonFields p={C} onChange={sc} showBenefits={true} />
-          <div style={S.row2}>
-            <F label="Total Outgoings (£/month)"><Inp type="number" value={C.outgoings} onChange={sc("outgoings")} placeholder="2500" /></F>
-            <F label="Savings (£)"><Inp type="number" value={C.savings} onChange={sc("savings")} placeholder="10000" /></F>
+          <div style={{ marginBottom: 12 }}>
+            <Lbl text="Date of Birth" />
+            <DOB d={C.dobD} m={C.dobM} y={C.dobY} od={setC_("dobD")} om={setC_("dobM")} oy={setC_("dobY")} />
+            {cAge !== null && <p style={S.ageTag}>Age: {cAge} — State Pension Age: {cSPA}</p>}
           </div>
+          <div style={S.row2}>
+            <F label="Gender"><Sel value={C.gender} onChange={setC_("gender")}><option value="">Select…</option><option value="male">Male</option><option value="female">Female</option></Sel></F>
+            <F label="Smoker Status"><Sel value={C.smoker} onChange={setC_("smoker")}><option value="no">Non-smoker</option><option value="yes">Smoker</option><option value="ex">Ex-smoker</option></Sel></F>
+          </div>
+          <div style={S.row1}>
+            <Lbl text="Height" />
+            <UnitToggle isMetric={C.hUnit === "metric"} onMetric={() => setC(p => ({ ...p, hUnit: "metric" }))} onImperial={() => setC(p => ({ ...p, hUnit: "imperial" }))} />
+            {C.hUnit === "metric"
+              ? <Inp type="number" value={C.hCm} onChange={setC_("hCm")} placeholder="e.g. 175" />
+              : <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  <Inp type="number" value={C.hFt} onChange={setC_("hFt")} placeholder="ft" />
+                  <Inp type="number" value={C.hIn} onChange={setC_("hIn")} placeholder="in" />
+                </div>
+            }
+          </div>
+          <div style={S.row1}>
+            <Lbl text="Weight" />
+            <UnitToggle isMetric={C.wUnit === "metric"} onMetric={() => setC(p => ({ ...p, wUnit: "metric" }))} onImperial={() => setC(p => ({ ...p, wUnit: "imperial" }))} />
+            {C.wUnit === "metric"
+              ? <Inp type="number" value={C.wKg} onChange={setC_("wKg")} placeholder="e.g. 80" />
+              : <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  <Inp type="number" value={C.wSt} onChange={setC_("wSt")} placeholder="st" />
+                  <Inp type="number" value={C.wLbs} onChange={setC_("wLbs")} placeholder="lbs" />
+                </div>
+            }
+            {cBMI && <p style={S.bmiTag(cBand?.flag)}>BMI: {cBMI.toFixed(1)} — {cBand?.label}</p>}
+          </div>
+          <div style={S.row1}><F label="Occupation"><Inp value={C.occ} onChange={setC_("occ")} placeholder="e.g. Accountant, Plumber" /></F></div>
+          <div style={S.row1}><F label="Employment Type"><Sel value={C.empType} onChange={setC_("empType")}><option value="employed">Employed</option><option value="self_employed">Self-employed</option><option value="director">Limited company director</option><option value="contractor">Contractor</option></Sel></F></div>
+          <div style={S.row2}>
+            <F label="Gross Income (£/yr)"><Inp type="number" value={C.gross} onChange={setC_("gross")} placeholder="50000" /></F>
+            <F label="Take-home (£/month)"><Inp type="number" value={C.takehome} onChange={setC_("takehome")} placeholder="3200" /></F>
+          </div>
+          <div style={S.row2}>
+            <F label="Total Outgoings (£/month)"><Inp type="number" value={C.outgoings} onChange={setC_("outgoings")} placeholder="2500" /></F>
+            <F label="Savings (£)"><Inp type="number" value={C.savings} onChange={setC_("savings")} placeholder="10000" /></F>
+          </div>
+          {!isSE(C.empType) && (
+            <div style={S.row2}>
+              <F label="Employer Sick Pay"><Inp value={C.sickPay} onChange={setC_("sickPay")} placeholder="e.g. Full pay" /></F>
+              <F label="Sick Pay Duration"><Inp value={C.sickDur} onChange={setC_("sickDur")} placeholder="e.g. 3 months" /></F>
+            </div>
+          )}
+          {!isSE(C.empType) && (
+            <div style={S.row1}><F label="Employee Benefits"><Ta value={C.benefits} onChange={setC_("benefits")} placeholder="e.g. 4x salary death in service, group IP" /></F></div>
+          )}
+          <div style={S.row1}><F label="Health / Medical History"><Ta value={C.health} onChange={setC_("health")} placeholder="e.g. Type 2 diabetes, well controlled. No other conditions." /></F></div>
         </div>
 
         {/* PARTNER */}
@@ -410,9 +378,53 @@ ${existing}`;
           </label>
           {hasP && <>
             <div style={{ ...S.row1, marginTop: 14 }}>
-              <F label="First Name"><Inp value={P.firstName} onChange={sp("firstName")} placeholder="Jane" /></F>
+              <F label="First Name"><Inp value={P.firstName} onChange={setP_("firstName")} placeholder="Jane" /></F>
             </div>
-            <PersonFields p={P} onChange={sp} showBenefits={false} />
+            <div style={{ marginBottom: 12 }}>
+              <Lbl text="Date of Birth" />
+              <DOB d={P.dobD} m={P.dobM} y={P.dobY} od={setP_("dobD")} om={setP_("dobM")} oy={setP_("dobY")} />
+              {pAge !== null && <p style={S.ageTag}>Age: {pAge} — State Pension Age: {pSPA}</p>}
+            </div>
+            <div style={S.row2}>
+              <F label="Gender"><Sel value={P.gender} onChange={setP_("gender")}><option value="">Select…</option><option value="male">Male</option><option value="female">Female</option></Sel></F>
+              <F label="Smoker Status"><Sel value={P.smoker} onChange={setP_("smoker")}><option value="no">Non-smoker</option><option value="yes">Smoker</option><option value="ex">Ex-smoker</option></Sel></F>
+            </div>
+            <div style={S.row1}>
+              <Lbl text="Height" />
+              <UnitToggle isMetric={P.hUnit === "metric"} onMetric={() => setP(p => ({ ...p, hUnit: "metric" }))} onImperial={() => setP(p => ({ ...p, hUnit: "imperial" }))} />
+              {P.hUnit === "metric"
+                ? <Inp type="number" value={P.hCm} onChange={setP_("hCm")} placeholder="e.g. 165" />
+                : <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    <Inp type="number" value={P.hFt} onChange={setP_("hFt")} placeholder="ft" />
+                    <Inp type="number" value={P.hIn} onChange={setP_("hIn")} placeholder="in" />
+                  </div>
+              }
+            </div>
+            <div style={S.row1}>
+              <Lbl text="Weight" />
+              <UnitToggle isMetric={P.wUnit === "metric"} onMetric={() => setP(p => ({ ...p, wUnit: "metric" }))} onImperial={() => setP(p => ({ ...p, wUnit: "imperial" }))} />
+              {P.wUnit === "metric"
+                ? <Inp type="number" value={P.wKg} onChange={setP_("wKg")} placeholder="e.g. 65" />
+                : <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    <Inp type="number" value={P.wSt} onChange={setP_("wSt")} placeholder="st" />
+                    <Inp type="number" value={P.wLbs} onChange={setP_("wLbs")} placeholder="lbs" />
+                  </div>
+              }
+              {pBMI && <p style={S.bmiTag(pBand?.flag)}>BMI: {pBMI.toFixed(1)} — {pBand?.label}</p>}
+            </div>
+            <div style={S.row1}><F label="Occupation"><Inp value={P.occ} onChange={setP_("occ")} placeholder="e.g. Teacher" /></F></div>
+            <div style={S.row1}><F label="Employment Type"><Sel value={P.empType} onChange={setP_("empType")}><option value="employed">Employed</option><option value="self_employed">Self-employed</option><option value="director">Limited company director</option><option value="contractor">Contractor</option></Sel></F></div>
+            <div style={S.row2}>
+              <F label="Gross Income (£/yr)"><Inp type="number" value={P.gross} onChange={setP_("gross")} placeholder="35000" /></F>
+              <F label="Take-home (£/month)"><Inp type="number" value={P.takehome} onChange={setP_("takehome")} placeholder="2400" /></F>
+            </div>
+            {!isSE(P.empType) && (
+              <div style={S.row2}>
+                <F label="Employer Sick Pay"><Inp value={P.sickPay} onChange={setP_("sickPay")} /></F>
+                <F label="Sick Pay Duration"><Inp value={P.sickDur} onChange={setP_("sickDur")} /></F>
+              </div>
+            )}
+            <div style={S.row1}><F label="Health / Medical History"><Ta value={P.health} onChange={setP_("health")} placeholder="e.g. No issues disclosed." /></F></div>
           </>}
         </div>
 
@@ -485,14 +497,14 @@ ${existing}`;
         </div>
 
         {/* LIVE UW FLAGS */}
-        {(lifeFlag || pLifeFlag || ipFlag || (cBand && cBand.flag !== "green") || (pBand && pBand.flag !== "green" && hasP)) && (
+        {(lifeFlag || pLifeFlag || ipFlag || (cBand && cBand.flag !== "green") || (hasP && pBand && pBand.flag !== "green")) && (
           <div style={S.card}>
             <p style={S.cardH}>⚡ Live Underwriting Flags</p>
             {lifeFlag && <FlagRow label={`${C.firstName || "Client"} — Life (£${totalMortgage.toLocaleString()})`} badge={lifeFlag.label} color={UWC[lifeFlag.level]} />}
             {pLifeFlag && <FlagRow label={`${P.firstName || "Partner"} — Life (£${totalMortgage.toLocaleString()})`} badge={pLifeFlag.label} color={UWC[pLifeFlag.level]} />}
             {ipFlag && <FlagRow label={`${C.firstName || "Client"} — IP (£${cIP.toLocaleString()}/month)`} badge={ipFlag.label} color={UWC[ipFlag.level]} />}
             {cBand && cBand.flag !== "green" && cBMI && <FlagRow label={`${C.firstName || "Client"} — BMI ${cBMI.toFixed(1)} (${cBand.label})`} badge={cBand.note} color={FC[cBand.flag]} />}
-            {pBand && pBand.flag !== "green" && pBMI && hasP && <FlagRow label={`${P.firstName || "Partner"} — BMI ${pBMI.toFixed(1)} (${pBand.label})`} badge={pBand.note} color={FC[pBand.flag]} />}
+            {hasP && pBand && pBand.flag !== "green" && pBMI && <FlagRow label={`${P.firstName || "Partner"} — BMI ${pBMI.toFixed(1)} (${pBand.label})`} badge={pBand.note} color={FC[pBand.flag]} />}
           </div>
         )}
 
