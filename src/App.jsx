@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 
-const ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
+const ANTHROPIC_MODEL = "claude-sonnet-4-5";
 
 const UW_LIMITS = {
   life: [
