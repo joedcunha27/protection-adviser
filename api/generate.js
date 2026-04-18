@@ -16,20 +16,12 @@ export default async function handler(req, res) {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
       },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: req.body.messages,
-      }),
+      body: JSON.stringify(req.body),
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      return res.status(response.status).json({ error: data.error?.message || 'API error' });
-    }
-
-    return res.status(200).json(data);
+    const text = await response.text();
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(response.status).send(text);
   } catch (error) {
     return res.status(500).json({ error: error.message || 'Internal server error' });
   }
