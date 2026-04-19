@@ -583,7 +583,13 @@ EXISTING COVER:\n${existing}`;
         {result && (
           <>
             <div style={S.out}>
-              <p style={S.outH}>Protection Advice Output</p>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+                <p style={{...S.outH,margin:0}}>Protection Advice Output</p>
+                <div style={{display:"flex",gap:8}}>
+                  <button onClick={()=>navigator.clipboard.writeText(buildPrompt())} style={{background:"#f1f5f9",border:"1px solid #e2e8f0",borderRadius:8,padding:"6px 12px",fontSize:12,fontWeight:600,color:"#475569",cursor:"pointer"}}>📋 Copy Fact-Find</button>
+                  <button onClick={()=>navigator.clipboard.writeText(result)} style={{background:"#f1f5f9",border:"1px solid #e2e8f0",borderRadius:8,padding:"6px 12px",fontSize:12,fontWeight:600,color:"#475569",cursor:"pointer"}}>📋 Copy Advice</button>
+                </div>
+              </div>
               <hr style={{border:"none",borderTop:"1px solid #e2e8f0",margin:"0 0 16px 0"}} />
               <pre style={S.pre}>{result}</pre>
             </div>
