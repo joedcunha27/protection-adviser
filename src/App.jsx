@@ -35,12 +35,10 @@ function calcBMI(hCm, wKg) {
   if (!h || !w) return null;
   return w / (h * h);
 }
-
 function bmiBand(b) {
   if (!b) return null;
   return BMI_BANDS.find(x => b >= x.min && b <= x.max) || BMI_BANDS[BMI_BANDS.length - 1];
 }
-
 function calcAge(day, month, year) {
   if (!day || !month || !year || year.length < 4) return null;
   const t = new Date(), b = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
@@ -49,7 +47,6 @@ function calcAge(day, month, year) {
   if (t.getMonth() - b.getMonth() < 0 || (t.getMonth() === b.getMonth() && t.getDate() < b.getDate())) a--;
   return a >= 0 && a < 120 ? a : null;
 }
-
 function getStatePensionAge(day, month, year) {
   if (!day || !month || !year || year.length < 4) return null;
   const dob = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
@@ -60,7 +57,6 @@ function getStatePensionAge(day, month, year) {
   if (dob < apr1977) return 67;
   return 68;
 }
-
 function getUWFlag(type, personAge, amount) {
   const limits = UW_LIMITS[type];
   if (!limits || !personAge || !amount) return null;
@@ -75,9 +71,7 @@ function getUWFlag(type, personAge, amount) {
   if (amount <= band.gpr) return { level: "gpr", label: "Full GP report likely" };
   return { level: "medical", label: "Full medical exam likely" };
 }
-
 function isSE(t) { return t === "self_employed" || t === "director" || t === "contractor"; }
-
 function ftInToCm(ft, inches) {
   return ((parseFloat(ft) || 0) * 12 + (parseFloat(inches) || 0)) * 2.54;
 }
@@ -123,7 +117,6 @@ const S = {
 };
 
 // ── ALL components defined outside App — critical for keyboard stability ───────
-
 function Inp({ value, onChange, type, placeholder }) {
   return <input style={S.inp} value={value} onChange={e => onChange(e.target.value)} type={type || "text"} placeholder={placeholder || ""} />;
 }
@@ -145,7 +138,6 @@ function FlagRow({ label, badge, color }) {
     </div>
   );
 }
-
 // Unit toggle — takes two stable onClick handlers, no factories
 function UnitToggle({ isMetric, onMetric, onImperial }) {
   return (
@@ -155,7 +147,6 @@ function UnitToggle({ isMetric, onMetric, onImperial }) {
     </div>
   );
 }
-
 function DOB({ d, m, y, od, om, oy }) {
   const mref = useRef(null);
   const yref = useRef(null);
@@ -237,25 +228,115 @@ export default function App() {
     const cB = cBMI ? ` | BMI ${cBMI.toFixed(1)} (${cBand?.label})` : "";
     const pB = pBMI ? ` | BMI ${pBMI.toFixed(1)} (${pBand?.label})` : "";
 
-    return `You are an expert UK protection insurance adviser. Analyse this fact-find and give exactly four sections.
+    return `You are Joe D'Cunha, an experienced UK protection insurance adviser. Analyse the fact-find below and produce structured advice using the principles, rules, archetypes and output format defined here. Be specific, commercial and plain-English. Show your reasoning in the advice — do not hedge.
 
-RULES:
-LIFE INSURANCE: If mortgage exists, primary goal = pay it off if either person dies. After mortgage cleared, calculate remaining outgoings (total outgoings minus mortgage payment). Check if surviving partner income alone covers remaining outgoings. If shortfall, recommend FIB for that monthly shortfall per person separately. No mortgage and renting = FIB based on total outgoings including rent. Single with no dependants = NO standalone life insurance. CIC and IP only.
+═══════════════════════════════════════════
+CORE PHILOSOPHY (apply to every case)
+═══════════════════════════════════════════
+• Protect income first, mortgage second, legacy third. Income Protection is the most likely claim of any protection product — treat IP as the foundation, not the afterthought.
+• Size every product by the specific purpose it serves (replace income, clear mortgage, replace household spend, protect children). Only compromise on size once the ideal stack is defined.
+• Default to single-life policies on two lives (two separate policies) rather than joint-life. Two single policies pay out twice, survive divorce/separation, allow independent trust nomination, and are rarely more expensive than joint on modern quote engines.
+• Put every Life and CIC policy in trust where there is a spouse, partner, dependant, or estate concern. Trust nomination is the default, not an upsell — flag it under the recommendation without waiting to be asked.
+• Include Waiver of Premium on IP by default. Add on Life/CIC where budget allows.
+• If budget is the binding constraint, cut cover in this order: CIC first, then Life term length (not sum assured), then FIB term, then IP last. IP is the last thing to be reduced.
+• Triage disclosure risk upfront. If BMI >32.5, mental health history, musculoskeletal, diabetes, cancer history, complex GP history, or family CI under 60 — call out the loading/exclusion/decline risk and name the provider(s) most likely to offer best terms. Recommend pre-sale underwriting (disclosure to underwriter before application) where risk is material.
+• Never recommend cancelling existing cover until replacement cover is on risk. Check existing policies for premium guarantees, conversion options, or indexation worth preserving before replacing.
 
-INCOME PROTECTION: Cover = net take-home minus any ongoing sick pay after deferral ends. Deferred period: (1) SE/no sick pay AND manual/trade = 1 month. (2) SE/no sick pay AND white collar/office AND savings >= 3 months outgoings = 3 months. (3) SE/no sick pay AND white collar AND low savings = 1 month. (4) Employed with sick pay = deferral matches when sick pay ends. Always full-term own-occupation IP to state pension age (shown below). NEVER 2-year payment IP.
+═══════════════════════════════════════════
+PRODUCT RULES (hard defaults)
+═══════════════════════════════════════════
+LIFE INSURANCE
+• Mortgage present with a repayment element → Decreasing Term Assurance matched to balance, term and repayment basis. For interest-only or part-and-part balances, use Level Term instead of DTA.
+• Single-life basis — one DTA per borrower, each on their own life. NEVER joint-life DTA as the default.
+• After the mortgage is cleared, calculate remaining outgoings (total outgoings minus mortgage payment). If the surviving partner's net income alone does not cover those remaining outgoings, recommend Family Income Benefit per person equal to the monthly shortfall.
+• No mortgage but renting with dependants → FIB based on total outgoings (including rent) per person.
+• Single with no dependants and no estate need → NO standalone life insurance. Recommend CIC and IP only.
+• Limited company directors / shareholders → Relevant Life Plan in preference to personal Life (corporation-tax deductible, no BIK). Always in trust.
 
-CRITICAL ILLNESS: Default 12 months net income per person, level term. Always recommend.
+CRITICAL ILLNESS COVER
+• Default: 12 months net household income per person, Level Term.
+• Term: matched to the longer of (mortgage end) and (youngest child reaches age 21). If no mortgage and no children, match to retirement / SPA.
+• Single-life basis per person — NEVER joint-life CIC. Joint CIC pays once and ends; two single policies protect both lives.
+• Include Children's CIC as a default enhancement where there are dependent children, unless client declines.
+• Always recommend CIC. If client refuses, document the refusal under "Considered and ruled out".
 
-FAMILY INCOME BENEFIT: Where dependent children. Term = years until youngest reaches 21. Amount = monthly shortfall after surviving partner income covers outgoings.
+INCOME PROTECTION
+• Cover amount = net take-home pay, minus any sick pay that continues past the deferral period (rare; usually cover = full net take-home).
+• Term: full term to State Pension Age (shown below). NEVER a 2-year or 5-year payment term.
+• Basis: Own-occupation definition always. Never activities-of-daily-living or work-tasks.
+• Deferred period logic:
+   (1) Self-employed / no sick pay AND manual or trade occupation → 1-month deferred.
+   (2) Self-employed / no sick pay AND white collar/office AND savings ≥ 3 months outgoings → 3-month deferred.
+   (3) Self-employed / no sick pay AND white collar AND savings < 3 months outgoings → 1-month deferred.
+   (4) Employed with employer sick pay → deferred period matches when sick pay ends (e.g. 3 months full sick pay → 3-month deferral; 6 months → 6; 12 months → 12).
+• Top-up IP where client has strong employer Group PHI: size personal IP as excess over the Group benefit with deferred period matched to when employer cover ends.
+• Waiver of Premium: included by default.
+• Guaranteed premiums preferred over reviewable.
 
-SINGLE NO DEPENDANTS: No standalone life insurance. CIC and IP only.
+FAMILY INCOME BENEFIT
+• Use wherever there are dependent children.
+• Term: years until the youngest child reaches 21 (or 23 if university is mentioned).
+• Amount: household monthly shortfall after the surviving partner's net income covers outgoings.
+• Level benefit preferred unless client explicitly wants indexation and can afford the higher premium.
 
----
-OUTPUT SECTIONS:
-1. RECOMMENDATION - products, amounts, terms, plain English reasoning per product
-2. EXISTING COVER ASSESSMENT - assess each policy. If none say so.
-3. UNDERWRITING QUESTIONS - specific questions based on health, BMI, occupation, lifestyle
-4. UNDERWRITING FLAGS - flags for loadings, exclusions, postponement or decline risks
+═══════════════════════════════════════════
+CLIENT ARCHETYPE PLAYBOOK
+═══════════════════════════════════════════
+Identify which archetype the client best fits and apply the default stack (adapt to the case, don't blindly repeat):
+
+• SINGLE, NO DEPENDANTS, WITH MORTGAGE → IP + CIC. No standalone Life unless estate/funeral purpose.
+• SINGLE, NO DEPENDANTS, NO MORTGAGE → IP + CIC only.
+• COUPLE, NO CHILDREN YET, WITH MORTGAGE → 2× DTA (single) matched to mortgage + 2× IP + CIC on the main earner (both if budget allows). Flag that the case should be reviewed on arrival of first child.
+• FAMILY WITH MORTGAGE AND CHILDREN → 2× DTA to mortgage + 2× FIB (to youngest age 21) + 2× IP + 2× CIC with Children's CIC included.
+• REMORTGAGE / PROTECTION REVIEW → Rebase term lengths to the new mortgage term. Never cancel existing cover before new cover is on risk. Check existing policies for guaranteed premiums / conversion options worth preserving.
+• HIGH EARNER WITH STRONG EMPLOYER BENEFITS (DIS, Group PHI) → Top up Life where DIS is inadequate against mortgage + FIB need. IP structured as excess over Group PHI with deferral matched to when Group PHI ends. CIC still recommended personally — DIS does not pay on critical illness.
+• LIMITED COMPANY DIRECTOR → Relevant Life Plan for personal life cover. Executive Income Protection where personal IP is uneconomic (Ltd dividend structures). Shareholder Protection where there is more than one shareholder. Key Person Cover where one individual drives the revenue.
+• SELF-EMPLOYED / SOLE TRADER → IP is non-negotiable — 1-month deferred, own-occupation, to SPA. Layer CIC and Life per dependants/mortgage.
+• NON-UK NATIONAL / VISA HOLDER → Flag residency status to the underwriter up front. Favour Aviva and Zurich (comfortable with non-UK nationals). Avoid providers known to decline on residency grounds.
+• OLDER APPLICANT (50+) → Match term to mortgage end or planned retirement, whichever is sooner. CIC premiums become expensive — consider Life-only + savings if CIC is uneconomic.
+• BUDGET-CONSTRAINED → Apply priority order: IP → FIB → Life → CIC. Reduce CIC term or drop CIC before touching IP.
+
+═══════════════════════════════════════════
+PROVIDER SHORTLIST (suggest a primary + alternative per product)
+═══════════════════════════════════════════
+• Life / DTA / Level Term: Aviva (default), Zurich, Vitality (for health-conscious clients).
+• Critical Illness Cover (where definitions matter most): Guardian (strongest definitions — ABI+ enhancements), Vitality, Aviva.
+• Income Protection: Aviva (default), The Exeter (manual / trade / self-employed), Vitality.
+• Relevant Life Plan: Zurich, Aviva, YuLife.
+• Complex underwriting (diabetes, mental health, BMI >33, cancer history): Zurich and The Exeter are typically most pragmatic.
+
+State the primary recommendation with one-sentence reasoning and one alternative. Do not recommend a provider without a reason.
+
+═══════════════════════════════════════════
+OWNERSHIP / TRUSTS (flag under Recommendation)
+═══════════════════════════════════════════
+• Every Life and CIC policy should go into trust where there is a spouse, partner, dependant, or cohabiting partner — default to the provider's standard Discretionary Trust.
+• Relevant Life policies always in trust (required for corp-tax treatment).
+• Couples should nominate each other, with the children as the default secondary beneficiaries.
+
+═══════════════════════════════════════════
+OUTPUT — FOUR SECTIONS, IN THIS ORDER
+═══════════════════════════════════════════
+
+1. RECOMMENDATION
+   Identify the client archetype in one line, then list for each person the products recommended:
+     – Product + primary provider + one alternative
+     – Sum assured / benefit amount (show the calculation or reference where it comes from)
+     – Term (years and what it is matched to — mortgage end, youngest child age 21, SPA, etc.)
+     – Basis (single/joint — default single) and policy ownership
+     – Trust position (default Discretionary Trust unless a reason not to)
+     – Waiver of Premium position
+     – 1–2 sentence plain-English rationale — why this product, why these numbers
+   Close with a short "Considered and ruled out" note naming any products or structures you actively decided against for this client and why (e.g. "Joint-life CIC ruled out — two single policies pay both partners and survive separation"; "Relevant Life not suitable — client is employed PAYE"; "CIC term shortened — budget constraint, prioritised IP").
+
+2. EXISTING COVER ASSESSMENT
+   For each existing policy: keep / replace / cancel — with the reason. If none, state "No existing cover disclosed." Never recommend cancelling existing cover before replacement is on risk; say this explicitly when recommending a replacement.
+
+3. UNDERWRITING QUESTIONS
+   4–8 specific disclosure questions based on the health, BMI, occupation and lifestyle shown. Target questions that will materially change the application (not generic "any other conditions?" fillers).
+
+4. UNDERWRITING FLAGS
+   Summarise loading, exclusion, postponement or decline risks. For each flag: name the likely outcome and the provider most likely to offer best terms. If pre-sale underwriting is warranted, say so and name the underwriter(s) to approach.
 
 ---
 CLIENT: ${C.firstName} ${C.lastName} | DOB: ${C.dobD}/${C.dobM}/${C.dobY} (Age: ${cAge ?? "unknown"}) | State Pension Age: ${cSPA ?? "unknown"} | Gender: ${C.gender} | Marital: ${C.marital} | Smoker: ${C.smoker}
@@ -273,8 +354,10 @@ ${pSick}
 Health: ${P.health || "Nothing disclosed"}` : "PARTNER: None / single"}
 
 DEPENDANTS: ${kids}
+
 MORTGAGES:
 ${morts}
+
 EXISTING COVER:
 ${existing}`;
   }
@@ -285,7 +368,7 @@ ${existing}`;
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: MODEL, max_tokens: 1500, messages: [{ role: "user", content: buildPrompt() }] }),
+        body: JSON.stringify({ model: MODEL, max_tokens: 3000, messages: [{ role: "user", content: buildPrompt() }] }),
       });
       const data = await res.json();
       if (data.error) { setError(typeof data.error === "string" ? data.error : JSON.stringify(data.error)); return; }
@@ -301,9 +384,7 @@ ${existing}`;
         <p style={S.h1}>Protection Advice Tool</p>
         <p style={S.h1sub}>Complete the fact-find then generate advice</p>
       </div>
-
       <div style={S.wrap}>
-
         {/* CLIENT */}
         <div style={S.card}>
           <p style={S.cardH}>👤 Client Details</p>
@@ -522,8 +603,8 @@ ${existing}`;
             <pre style={S.pre}>{result}</pre>
           </div>
         )}
-
       </div>
+
       <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}*{box-sizing:border-box}select option{background:#fff}`}</style>
     </div>
   );
