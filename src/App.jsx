@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import ScriptGuide from "./ScriptGuide";
 
 const MODEL = "claude-sonnet-4-5";
 
@@ -580,11 +581,14 @@ EXISTING COVER:\n${existing}`;
         {loading && <div style={S.spin}><span style={{animation:"spin 1s linear infinite",display:"inline-block"}}>⟳</span> Analysing and generating advice…</div>}
         {error && <div style={S.err}>{error}</div>}
         {result && (
-          <div style={S.out}>
-            <p style={S.outH}>Protection Advice Output</p>
-            <hr style={{border:"none",borderTop:"1px solid #e2e8f0",margin:"0 0 16px 0"}} />
-            <pre style={S.pre}>{result}</pre>
-          </div>
+          <>
+            <div style={S.out}>
+              <p style={S.outH}>Protection Advice Output</p>
+              <hr style={{border:"none",borderTop:"1px solid #e2e8f0",margin:"0 0 16px 0"}} />
+              <pre style={S.pre}>{result}</pre>
+            </div>
+            <ScriptGuide C={C} P={P} hasP={hasP} mortgages={mortgages} numKids={numKids} kidAges={kidAges} cSPA={cSPA} pSPA={pSPA} />
+          </>
         )}
       </div>
       <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}*{box-sizing:border-box}select option{background:#fff}`}</style>
