@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+  import { useState, useRef } from "react";
 import ScriptGuide from "./ScriptGuide";
 
 const MODEL = "claude-sonnet-4-5";
@@ -79,57 +79,175 @@ const FC = { green:"#059669",amber:"#d97706",red:"#dc2626" };
 
 // ── DESIGN TOKENS ─────────────────────────────────────────────────────────────
 const C = {
-  navy: "#0f1f3d",
-  navyMid: "#1a3260",
-  blue: "#2563eb",
-  blueLight: "#3b82f6",
-  teal: "#0d9488",
-  gold: "#f59e0b",
-  slate: "#64748b",
-  slateLight: "#94a3b8",
-  bg: "#f0f4f8",
-  bgCard: "#ffffff",
-  border: "#e2e8f0",
-  text: "#0f172a",
-  textMid: "#334155",
+  ink:     "#0a0f1e",
+  inkMid:  "#111827",
+  amber:   "#f59e0b",
+  amberDim:"#d97706",
+  amberGlow:"rgba(245,158,11,0.15)",
+  emerald: "#10b981",
+  rose:    "#f43f5e",
+  slate:   "#6b7280",
+  slateLight:"#9ca3af",
+  border:  "#1f2937",
+  borderLight:"#374151",
+  card:    "#111827",
+  cardInner:"#1a2235",
+  text:    "#f9fafb",
+  textMid: "#d1d5db",
+  textDim: "#9ca3af",
 };
 
 const S = {
-  page: { minHeight:"100vh", background:`linear-gradient(160deg, ${C.navy} 0%, ${C.navyMid} 40%, #1e3a5f 100%)`, fontFamily:"'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", paddingBottom:80 },
-  header: { padding:"32px 24px 28px", position:"relative", overflow:"hidden" },
-  logo: { display:"flex", alignItems:"center", gap:10, marginBottom:6 },
-  logoMark: { width:38, height:38, background:"linear-gradient(135deg, #2563eb, #0d9488)", borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, fontWeight:900, color:"#fff", letterSpacing:"-1px", boxShadow:"0 4px 12px rgba(37,99,235,0.4)" },
-  logoText: { fontSize:22, fontWeight:800, color:"#fff", letterSpacing:"-0.5px" },
-  logoSub: { fontSize:13, color:"rgba(255,255,255,0.55)", letterSpacing:"0.08em", textTransform:"uppercase", fontWeight:500 },
-  tagline: { fontSize:13, color:"rgba(255,255,255,0.6)", marginTop:6 },
-  wrap: { maxWidth:660, margin:"0 auto", padding:"20px 16px" },
-  card: { background:C.bgCard, borderRadius:20, padding:"24px 22px", marginBottom:16, boxShadow:"0 4px 24px rgba(15,31,61,0.12)", border:"1px solid rgba(255,255,255,0.8)" },
-  cardH: { fontSize:11, fontWeight:800, letterSpacing:"0.1em", textTransform:"uppercase", color:C.blue, margin:"0 0 20px 0", display:"flex", alignItems:"center", gap:8 },
-  cardHLine: { flex:1, height:1, background:`linear-gradient(90deg, ${C.blue}30, transparent)` },
-  lbl: { fontSize:12, fontWeight:700, color:C.slate, marginBottom:6, display:"block", letterSpacing:"0.04em", textTransform:"uppercase" },
-  inp: { background:"#f8faff", border:`1.5px solid ${C.border}`, borderRadius:12, color:C.text, padding:"12px 14px", fontSize:15, outline:"none", width:"100%", boxSizing:"border-box", fontFamily:"inherit", WebkitAppearance:"none", appearance:"none", transition:"border-color 0.15s", fontWeight:500 },
+  page: {
+    minHeight:"100vh",
+    background:`radial-gradient(ellipse at 20% 0%, #1a1f35 0%, ${C.ink} 60%)`,
+    fontFamily:"'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+    paddingBottom:100,
+  },
+  header: {
+    padding:"36px 24px 32px",
+    position:"relative", overflow:"hidden",
+    borderBottom:`1px solid ${C.border}`,
+    background:`linear-gradient(180deg, rgba(245,158,11,0.04) 0%, transparent 100%)`,
+  },
+  logo: { display:"flex", alignItems:"center", gap:14, marginBottom:10 },
+  logoMark: {
+    width:44, height:44,
+    background:`linear-gradient(135deg, ${C.amber} 0%, ${C.amberDim} 100%)`,
+    borderRadius:12,
+    display:"flex", alignItems:"center", justifyContent:"center",
+    fontSize:20, fontWeight:900, color:C.ink,
+    boxShadow:`0 0 24px ${C.amberGlow}, 0 4px 12px rgba(0,0,0,0.4)`,
+    letterSpacing:"-1px",
+  },
+  logoText: {
+    fontSize:26, fontWeight:800, color:C.text,
+    letterSpacing:"-0.8px", lineHeight:1,
+  },
+  logoSub: {
+    fontSize:11, color:C.amber, letterSpacing:"0.15em",
+    textTransform:"uppercase", fontWeight:600, marginTop:2,
+  },
+  tagline: { fontSize:13, color:C.textDim, marginTop:10, maxWidth:420, lineHeight:1.6 },
+  wrap: { maxWidth:660, margin:"0 auto", padding:"24px 16px" },
+  card: {
+    background:C.card, borderRadius:20,
+    padding:"24px 22px", marginBottom:14,
+    border:`1px solid ${C.border}`,
+    boxShadow:"0 8px 32px rgba(0,0,0,0.3)",
+  },
+  cardH: {
+    fontSize:11, fontWeight:700, letterSpacing:"0.12em",
+    textTransform:"uppercase", color:C.amber,
+    margin:"0 0 22px 0",
+    display:"flex", alignItems:"center", gap:10,
+  },
+  cardHLine: { flex:1, height:"1px", background:`linear-gradient(90deg, ${C.amber}40, transparent)` },
+  lbl: {
+    fontSize:12, fontWeight:600, color:C.textDim,
+    marginBottom:7, display:"block", letterSpacing:"0.03em",
+  },
+  inp: {
+    background:C.cardInner, border:`1.5px solid ${C.borderLight}`,
+    borderRadius:10, color:C.text,
+    padding:"12px 14px", fontSize:15, outline:"none",
+    width:"100%", boxSizing:"border-box",
+    fontFamily:"inherit", WebkitAppearance:"none", appearance:"none",
+    transition:"border-color 0.2s, box-shadow 0.2s", fontWeight:500,
+  },
   row2: { display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:14 },
   row1: { marginBottom:14 },
-  sub: { background:"#f8faff", borderRadius:14, padding:16, marginBottom:12, border:`1px solid ${C.border}` },
+  sub: {
+    background:C.cardInner, borderRadius:14, padding:16,
+    marginBottom:12, border:`1px solid ${C.border}`,
+  },
   subH: { fontSize:13, fontWeight:700, color:C.textMid, margin:"0 0 14px 0" },
-  addBtn: { background:"transparent", border:`2px dashed ${C.blue}50`, color:C.blue, borderRadius:12, padding:"12px", fontSize:13, fontWeight:700, cursor:"pointer", width:"100%", marginTop:6, letterSpacing:"0.02em", transition:"all 0.15s" },
-  remBtn: { background:"#fef2f2", border:"none", color:"#ef4444", borderRadius:8, padding:"5px 12px", fontSize:12, fontWeight:700, cursor:"pointer" },
-  genBtn: { background:`linear-gradient(135deg, ${C.blue} 0%, ${C.teal} 100%)`, border:"none", borderRadius:16, color:"#fff", fontSize:16, fontWeight:800, padding:"20px", cursor:"pointer", width:"100%", boxShadow:"0 8px 24px rgba(37,99,235,0.35)", letterSpacing:"0.02em", transition:"transform 0.15s, box-shadow 0.15s" },
-  togWrap: { display:"flex", borderRadius:10, overflow:"hidden", border:`1.5px solid ${C.border}`, marginBottom:10, width:"fit-content", background:"#f8faff" },
-  togOn: { background:`linear-gradient(135deg, ${C.blue}, #1d4ed8)`, color:"#fff", border:"none", padding:"7px 16px", fontSize:12, fontWeight:700, cursor:"pointer", letterSpacing:"0.03em" },
-  togOff: { background:"transparent", color:C.slate, border:"none", padding:"7px 16px", fontSize:12, fontWeight:600, cursor:"pointer" },
-  flag: (col) => ({ display:"flex", alignItems:"flex-start", gap:10, padding:"12px 14px", background:col+"12", border:`1px solid ${col}30`, borderRadius:12, marginBottom:8, fontSize:13 }),
-  flagDot: (col) => ({ width:8, height:8, borderRadius:"50%", background:col, marginTop:4, flexShrink:0 }),
-  badge: (col) => ({ background:col+"15", color:col, borderRadius:20, padding:"3px 10px", fontSize:11, fontWeight:700, whiteSpace:"nowrap", letterSpacing:"0.04em" }),
-  ageTag: { fontSize:12, color:C.blue, fontWeight:700, margin:"6px 0 10px 0", padding:"5px 10px", background:"#eff6ff", borderRadius:8, display:"inline-block" },
-  bmiTag: (col) => ({ fontSize:12, fontWeight:700, color:FC[col]||C.slate, margin:"6px 0 10px 0", padding:"5px 10px", background:FC[col]+"10"||"#f8fafc", borderRadius:8, display:"inline-block" }),
+  addBtn: {
+    background:"transparent",
+    border:`1.5px dashed ${C.borderLight}`,
+    color:C.amber, borderRadius:12, padding:"12px",
+    fontSize:13, fontWeight:600, cursor:"pointer", width:"100%",
+    marginTop:6, letterSpacing:"0.02em", transition:"all 0.2s",
+  },
+  remBtn: {
+    background:"rgba(244,63,94,0.1)", border:"1px solid rgba(244,63,94,0.2)",
+    color:C.rose, borderRadius:8, padding:"5px 12px",
+    fontSize:12, fontWeight:700, cursor:"pointer",
+  },
+  genBtn: {
+    background:`linear-gradient(135deg, ${C.amber} 0%, ${C.amberDim} 100%)`,
+    border:"none", borderRadius:16, color:C.ink,
+    fontSize:16, fontWeight:800, padding:"20px",
+    cursor:"pointer", width:"100%",
+    boxShadow:`0 8px 32px ${C.amberGlow}, 0 4px 16px rgba(0,0,0,0.3)`,
+    letterSpacing:"0.02em",
+  },
+  togWrap: {
+    display:"flex", borderRadius:10, overflow:"hidden",
+    border:`1.5px solid ${C.borderLight}`,
+    marginBottom:10, width:"fit-content",
+  },
+  togOn: {
+    background:C.amber, color:C.ink,
+    border:"none", padding:"7px 16px",
+    fontSize:12, fontWeight:700, cursor:"pointer",
+  },
+  togOff: {
+    background:"transparent", color:C.textDim,
+    border:"none", padding:"7px 16px",
+    fontSize:12, fontWeight:600, cursor:"pointer",
+  },
+  flag: (col) => ({
+    display:"flex", alignItems:"flex-start", gap:10,
+    padding:"12px 14px", background:col+"15",
+    border:`1px solid ${col}30`,
+    borderRadius:12, marginBottom:8, fontSize:13,
+  }),
+  flagDot: (col) => ({
+    width:7, height:7, borderRadius:"50%",
+    background:col, marginTop:5, flexShrink:0,
+    boxShadow:`0 0 6px ${col}`,
+  }),
+  badge: (col) => ({
+    background:col+"20", color:col,
+    borderRadius:20, padding:"3px 10px",
+    fontSize:11, fontWeight:700,
+    whiteSpace:"nowrap", letterSpacing:"0.04em",
+    border:`1px solid ${col}30`,
+  }),
+  ageTag: {
+    fontSize:12, color:C.amber, fontWeight:600,
+    margin:"6px 0 10px 0", padding:"5px 10px",
+    background:C.amberGlow, borderRadius:8,
+    display:"inline-block", border:`1px solid ${C.amber}30`,
+  },
+  bmiTag: (col) => ({
+    fontSize:12, fontWeight:600,
+    color: col==="green" ? C.emerald : col==="amber" ? C.amber : C.rose,
+    margin:"6px 0 10px 0", padding:"5px 10px",
+    background: col==="green" ? "rgba(16,185,129,0.1)" : col==="amber" ? C.amberGlow : "rgba(244,63,94,0.1)",
+    borderRadius:8, display:"inline-block",
+    border:`1px solid ${col==="green" ? "rgba(16,185,129,0.2)" : col==="amber" ? C.amber+"30" : "rgba(244,63,94,0.2)"}`,
+  }),
   chk: { display:"flex", alignItems:"center", gap:12, cursor:"pointer", fontSize:14, color:C.textMid, fontWeight:500 },
-  out: { background:C.bgCard, borderRadius:20, padding:24, marginTop:18, boxShadow:"0 4px 24px rgba(15,31,61,0.12)", border:"1px solid rgba(255,255,255,0.8)" },
-  outH: { fontSize:15, fontWeight:800, color:C.text, margin:"0 0 4px 0", letterSpacing:"-0.3px" },
+  out: {
+    background:C.card, borderRadius:20, padding:24,
+    marginTop:18, border:`1px solid ${C.border}`,
+    boxShadow:"0 8px 32px rgba(0,0,0,0.3)",
+  },
+  outH: { fontSize:16, fontWeight:800, color:C.text, margin:"0 0 4px 0", letterSpacing:"-0.3px" },
   pre: { fontSize:14, lineHeight:1.9, color:C.textMid, whiteSpace:"pre-wrap", fontFamily:"inherit", margin:0 },
-  err: { background:"#fef2f2", border:"1px solid #fecaca", borderRadius:14, padding:16, color:"#dc2626", fontSize:13, marginTop:16 },
-  spin: { display:"flex", alignItems:"center", justifyContent:"center", gap:12, padding:32, color:"rgba(255,255,255,0.6)", fontSize:14 },
-  copyBtn: { background:"#f1f5f9", border:`1px solid ${C.border}`, borderRadius:10, padding:"7px 13px", fontSize:12, fontWeight:700, color:C.slate, cursor:"pointer", letterSpacing:"0.02em", transition:"all 0.15s" },
+  err: {
+    background:"rgba(244,63,94,0.1)", border:"1px solid rgba(244,63,94,0.2)",
+    borderRadius:14, padding:16, color:C.rose, fontSize:13, marginTop:16,
+  },
+  spin: { display:"flex", alignItems:"center", justifyContent:"center", gap:12, padding:36, color:C.textDim, fontSize:14 },
+  copyBtn: {
+    background:C.cardInner, border:`1px solid ${C.borderLight}`,
+    borderRadius:10, padding:"7px 13px",
+    fontSize:12, fontWeight:700, color:C.textDim,
+    cursor:"pointer", letterSpacing:"0.02em",
+  },
 };
 
 // ── COMPONENTS (all outside App) ──────────────────────────────────────────────
@@ -299,17 +417,16 @@ EXISTING COVER:\n${existing}`;
       <div style={S.header}>
         <div style={{maxWidth:660,margin:"0 auto"}}>
           <div style={S.logo}>
-            <div style={S.logoMark}>L</div>
+            <div style={S.logoMark}>LL</div>
             <div>
               <div style={S.logoText}>LifeLogic</div>
-              <div style={S.logoSub}>Protection Intelligence Platform</div>
+              <div style={S.logoSub}>Protection Intelligence</div>
             </div>
           </div>
-          <div style={S.tagline}>Complete the fact-find below to generate a full advice report and call script</div>
+          <div style={S.tagline}>AI-powered protection advice. Complete the fact-find below to generate a full advice report and call script.</div>
         </div>
-        {/* decorative circles */}
-        <div style={{position:"absolute",top:-40,right:-40,width:200,height:200,borderRadius:"50%",background:"rgba(37,99,235,0.08)",pointerEvents:"none"}} />
-        <div style={{position:"absolute",bottom:-60,right:60,width:150,height:150,borderRadius:"50%",background:"rgba(13,148,136,0.08)",pointerEvents:"none"}} />
+        <div style={{position:"absolute",top:-80,right:-80,width:300,height:300,borderRadius:"50%",background:"radial-gradient(circle, rgba(245,158,11,0.06) 0%, transparent 70%)",pointerEvents:"none"}} />
+        <div style={{position:"absolute",bottom:-100,left:-60,width:250,height:250,borderRadius:"50%",background:"radial-gradient(circle, rgba(16,185,129,0.04) 0%, transparent 70%)",pointerEvents:"none"}} />
       </div>
 
       <div style={S.wrap}>
@@ -368,7 +485,7 @@ EXISTING COVER:\n${existing}`;
         <div style={S.card}>
           <CardHeader icon="👥" text="Partner / Second Life" />
           <label style={{...S.chk,marginBottom:hasP?20:0}}>
-            <input type="checkbox" checked={hasP} onChange={e=>setHasP(e.target.checked)} style={{width:17,height:17,accentColor:C.blue}} />
+            <input type="checkbox" checked={hasP} onChange={e=>setHasP(e.target.checked)} style={{width:17,height:17,accentColor:C.amber}} />
             Include a partner on this case
           </label>
           {hasP&&<>
@@ -435,10 +552,10 @@ EXISTING COVER:\n${existing}`;
 
         {/* GENERATE BUTTON */}
         <button style={S.genBtn} onClick={generate} disabled={loading}>
-          {loading?"Generating advice…":"Generate Advice & Call Script  →"}
+          {loading?"Generating…":"⚡  Generate Advice & Call Script"}
         </button>
 
-        {loading&&<div style={S.spin}><span style={{animation:"spin 1s linear infinite",display:"inline-block",fontSize:20}}>◌</span> Analysing case and generating advice…</div>}
+        {loading&&<div style={S.spin}><span style={{animation:"spin 1s linear infinite",display:"inline-block",fontSize:20,color:C.amber}}>◌</span> Analysing case and generating advice…</div>}
         {error&&<div style={S.err}>{error}</div>}
 
         {result&&(
@@ -447,7 +564,7 @@ EXISTING COVER:\n${existing}`;
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16,gap:10}}>
                 <div>
                   <p style={S.outH}>Advice Report</p>
-                  <p style={{fontSize:12,color:C.slateLight,margin:0}}>Generated by LifeLogic AI</p>
+                  <p style={{fontSize:11,color:C.amber,margin:0,letterSpacing:"0.1em",fontWeight:700}}>GENERATED BY LIFELOGIC AI</p>
                 </div>
                 <div style={{display:"flex",gap:8,flexShrink:0}}>
                   <CopyBtn label="📋 Fact-Find" getText={buildPrompt} />
@@ -463,12 +580,21 @@ EXISTING COVER:\n${existing}`;
 
       </div>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
         *{box-sizing:border-box}
-        select option{background:#fff}
-        input[type=number]::-webkit-inner-spin-button{opacity:0.4}
-        input:focus,select:focus,textarea:focus{border-color:#2563eb !important;box-shadow:0 0 0 3px rgba(37,99,235,0.1)}
+        select option{background:#111827;color:#f9fafb}
+        input[type=number]::-webkit-inner-spin-button{opacity:0.3}
+        input:focus,select:focus,textarea:focus{
+          border-color:#f59e0b !important;
+          box-shadow:0 0 0 3px rgba(245,158,11,0.15) !important;
+          outline:none;
+        }
+        ::placeholder{color:#4b5563}
+        ::-webkit-scrollbar{width:6px}
+        ::-webkit-scrollbar-track{background:#0a0f1e}
+        ::-webkit-scrollbar-thumb{background:#374151;border-radius:3px}
       `}</style>
     </div>
   );
