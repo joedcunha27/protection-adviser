@@ -19,10 +19,15 @@ const TWO_CALL_STEPS = [
   { id:"c1_intro", section:"Introduction", script:"Hi, is that [firstName]?",
     subScript:"Hi [firstName], it's [Your Name] calling from First Thought Financial regarding your online enquiry about Income Protection that you made (DAY)\n\nIt's just a quick call to understand a bit about your situation and what you'd want the cover to do, so we can make sure we're looking at the right type of policy for you.\n\nWould you mind giving me a quick overview of your situation and what made you look into Income Protection?",
     type:"tap", options:["Yes, go ahead","Not a good time"], note:"",
-    next:"IF:options[0]:c1_idd|ELSE:c1_bad_time" },
+    next:"IF:options[0]:c1_overview|ELSE:c1_bad_time" },
 
   { id:"c1_bad_time", section:"Introduction", script:"No problem — when would be a better time to call you back?",
     type:"info", options:[], note:"Note the callback time and end the call.", next:"ALWAYS:c1_intro" },
+
+  { id:"c1_overview", section:"Introduction",
+    script:"Have you ever had Income Protection before, or is this the first time you've looked into it?",
+    subScript:"No problem. The easiest way to think of it is like having your own personal sick pay. If you're unable to work because of an illness or injury, it will provide you with a monthly income so you can still cover your bills and living expenses.\n\nTo qualify for a payout you just need to be signed off work by your GP, regardless of the reason or medical condition, as long as your GP (or any medical professional) signs you off, you'll be eligible to claim on the policy, ok?\n\nBecause everyone's circumstances are different, I'll get an idea of your situation first and then we can work out together how much cover you'd need and when you'd need it to start.",
+    type:"info", options:[], note:"", next:"ALWAYS:c1_idd" },
 
   { id:"c1_idd", section:"Introduction",
     script:"Just to let you know, I'm fully qualified to provide advice. We're authorised and regulated by the Financial Conduct Authority, our calls are recorded, and we won't pass your details on.",
@@ -33,12 +38,7 @@ const TWO_CALL_STEPS = [
     script:"Before we go any further, would you mind confirming your postcode and date of birth?",
     type:"input",
     inputs:[{key:"firstName",label:"First Name",placeholder:"John"},{key:"lastName",label:"Last Name",placeholder:"Smith"},{key:"dob",label:"Date of Birth",inputType:"date"},{key:"address",label:"Address / Postcode",placeholder:"e.g. 12 High Street, SW1A 1AA"}],
-    note:"", next:"ALWAYS:c1_overview" },
-
-  { id:"c1_overview", section:"Situation",
-    script:"Have you ever had Income Protection before, or is this the first time you've looked into it?",
-    subScript:"No problem. The easiest way to think of it is like having your own personal sick pay. If you're unable to work because of an illness or injury, it will provide you with a monthly income so you can still cover your bills and living expenses.\n\nTo qualify for a payout you just need to be signed off work by your GP, regardless of the reason or medical condition, as long as your GP (or any medical professional) signs you off, you'll be eligible to claim on the policy, ok?\n\nBecause everyone's circumstances are different, I'll get an idea of your situation first and then we can work out together how much cover you'd need and when you'd need it to start.",
-    type:"info", options:[], note:"", next:"ALWAYS:c1_marital" },
+    note:"", next:"ALWAYS:c1_marital" },
 
   { id:"c1_marital", section:"Situation",
     script:"Are you single, or do you have a partner or spouse?",
@@ -222,11 +222,16 @@ const ONE_CALL_STEPS = [
     script:"Hi, is that [firstName]?",
     subScript:"Hi [firstName], it's [Your Name] calling from First Thought Financial regarding your online enquiry about Income Protection that you made (DAY)\n\nIt's just a quick call to understand a bit about your situation and what you'd want the cover to do, so we can make sure we're looking at the right type of policy for you.\n\nWould you mind giving me a quick overview of your situation and what made you look into Income Protection?",
     type:"tap", options:["Yes, go ahead","Not a good time"], note:"",
-    next:"IF:options[0]:idd|ELSE:bad_time" },
+    next:"IF:options[0]:situation_overview|ELSE:bad_time" },
 
   { id:"bad_time", section:"Introduction",
     script:"No problem — when would be a better time to call you back?",
     type:"info", options:[], note:"Note the callback time and end the call.", next:"ALWAYS:intro" },
+
+  { id:"situation_overview", section:"Introduction",
+    script:"Have you ever had Income Protection before, or is this the first time you've looked into it?",
+    subScript:"No problem. The easiest way to think of it is like having your own personal sick pay. If you're unable to work because of an illness or injury, it will provide you with a monthly income so you can still cover your bills and living expenses.\n\nTo qualify for a payout you just need to be signed off work by your GP, regardless of the reason or medical condition, as long as your GP (or any medical professional) signs you off, you'll be eligible to claim on the policy, ok?\n\nBecause everyone's circumstances are different, I'll get an idea of your situation first and then we can work out together how much cover you'd need and when you'd need it to start.",
+    type:"info", options:[], note:"", next:"ALWAYS:idd" },
 
   { id:"idd", section:"Introduction",
     script:"Just to let you know, I'm fully qualified to provide advice. We're authorised and regulated by the Financial Conduct Authority, our calls are recorded, and we won't pass your details on.",
@@ -237,12 +242,7 @@ const ONE_CALL_STEPS = [
     script:"Before we go any further, would you mind confirming your postcode and date of birth?",
     type:"input",
     inputs:[{key:"firstName",label:"First Name",placeholder:"John"},{key:"lastName",label:"Last Name",placeholder:"Smith"},{key:"dob",label:"Date of Birth",inputType:"date"},{key:"address",label:"Address / Postcode",placeholder:"e.g. 12 High Street, SW1A 1AA"}],
-    note:"", next:"ALWAYS:situation_overview" },
-
-  { id:"situation_overview", section:"Situation",
-    script:"Have you ever had Income Protection before, or is this the first time you've looked into it?",
-    subScript:"No problem. The easiest way to think of it is like having your own personal sick pay. If you're unable to work because of an illness or injury, it will provide you with a monthly income so you can still cover your bills and living expenses.\n\nTo qualify for a payout you just need to be signed off work by your GP, regardless of the reason or medical condition, as long as your GP (or any medical professional) signs you off, you'll be eligible to claim on the policy, ok?\n\nBecause everyone's circumstances are different, I'll get an idea of your situation first and then we can work out together how much cover you'd need and when you'd need it to start.",
-    type:"info", options:[], note:"", next:"ALWAYS:marital" },
+    note:"", next:"ALWAYS:marital" },
 
   { id:"marital", section:"Situation",
     script:"Are you single, or do you have a partner or spouse?",
