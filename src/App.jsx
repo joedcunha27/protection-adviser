@@ -1,8 +1,8 @@
 import { useState } from "react";
 
-const A="#f59e0b",DARK="#0a0f1e",CARD="#111827",INNER="#1a2235",BORDER="#1f2937",
-      BORDERL="#374151",TEXT="#f9fafb",TEXTM="#d1d5db",TEXTD="#9ca3af",
-      EMERALD="#10b981",ROSE="#f43f5e",BLUE="#3b82f6";
+const A="#4e7fb8",DARK="#080d19",CARD="#0e1627",INNER="#131e30",BORDER="#1b2740",
+      BORDERL="#253450",TEXT="#f0f4fa",TEXTM="#c7d5e8",TEXTD="#7d9ab8",
+      EMERALD="#10b981",ROSE="#f43f5e",BLUE="#3b82f6",NAVY="#0d1b2a";
 const MODEL="claude-sonnet-4-5";
 
 const fmt=n=>n?`£${Number(n).toLocaleString()}`:"—";
@@ -224,7 +224,7 @@ const TWO_CALL_STEPS = [
     type:"info", options:[], note:"Mention 3 provider benefits and payout rate here — look these up in advance.", next:"ALWAYS:c2_generate" },
 
   { id:"c2_generate", section:"Call 2 — Pitch",
-    script:"All the information has been captured. Tap below to generate the full LifeLogic advice report.",
+    script:"All the information has been captured. Tap below to generate the full First Thought Financial advice report.",
     type:"generate", options:[], note:"", next:"ALWAYS:null" },
 ];
 
@@ -391,7 +391,7 @@ const ONE_CALL_STEPS = [
     type:"info", options:[], note:"Mention 3 provider benefits and payout rate here — look these up in advance.", next:"ALWAYS:generate" },
 
   { id:"generate", section:"Advice",
-    script:"All the information has been captured. Tap below to generate the full LifeLogic advice report.",
+    script:"All the information has been captured. Tap below to generate the full First Thought Financial advice report.",
     type:"generate", options:[], note:"", next:"ALWAYS:null" },
 ];
 
@@ -465,39 +465,39 @@ ${ff.hasLife==="Yes"?`EXISTING LIFE: ${ff.lifeProvider||"unknown"}, £${ff.lifeC
 const S={
   page:    {height:"100vh",background:`radial-gradient(ellipse at 20% 0%,#1a1f35 0%,${DARK} 60%)`,fontFamily:"'Plus Jakarta Sans',-apple-system,sans-serif",display:"flex",flexDirection:"column",overflow:"hidden"},
   header:  {padding:"12px 20px",borderBottom:`1px solid ${BORDER}`,display:"flex",alignItems:"center",gap:12,background:"rgba(10,15,30,0.9)",backdropFilter:"blur(10px)",flexShrink:0,zIndex:100},
-  logoMk:  {width:32,height:32,background:`linear-gradient(135deg,${A},#d97706)`,borderRadius:9,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:900,color:DARK,flexShrink:0},
-  logoT:   {fontSize:16,fontWeight:800,color:TEXT,letterSpacing:"-0.5px"},
-  logoS:   {fontSize:9,color:A,letterSpacing:"0.15em",textTransform:"uppercase",fontWeight:700},
+  logoMk:  {width:36,height:36,background:`linear-gradient(135deg,#1a3a6b,#0d1b2a)`,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:"1px solid rgba(78,127,184,0.35)"},
+  logoT:   {fontSize:15,fontWeight:800,color:TEXT,letterSpacing:"0.01em"},
+  logoS:   {fontSize:9,color:A,letterSpacing:"0.18em",textTransform:"uppercase",fontWeight:600},
   modeTabs:{display:"flex",background:INNER,borderRadius:8,padding:3,gap:3},
   modeTab: (a)=>({padding:"6px 14px",fontSize:12,fontWeight:700,border:"none",borderRadius:6,cursor:"pointer",background:a?A:"transparent",color:a?DARK:TEXTD,letterSpacing:"0.04em",transition:"all 0.15s"}),
   callTabs:{display:"flex",background:INNER,borderRadius:8,padding:3,gap:3},
   callTab: (a)=>({padding:"5px 12px",fontSize:11,fontWeight:700,border:"none",borderRadius:6,cursor:"pointer",background:a?"#3b82f6":"transparent",color:a?"#fff":TEXTD,letterSpacing:"0.04em",transition:"all 0.15s"}),
   prog:    {padding:"8px 20px",background:"rgba(17,24,39,0.7)",borderBottom:`1px solid ${BORDER}`,flexShrink:0},
   pBar:    {height:3,background:BORDERL,borderRadius:4,overflow:"hidden",marginTop:4},
-  pFill:   (p)=>({height:"100%",width:`${p}%`,background:`linear-gradient(90deg,${A},${EMERALD})`,borderRadius:4,transition:"width 0.4s"}),
+  pFill:   (p)=>({height:"100%",width:`${p}%`,background:`linear-gradient(90deg,#1e3a6b,${A})`,borderRadius:4,transition:"width 0.4s"}),
   tabs:    {display:"flex",borderBottom:`1px solid ${BORDER}`,background:CARD,flexShrink:0},
   tab:     (a)=>({flex:1,padding:"9px 0",fontSize:12,fontWeight:700,background:"transparent",border:"none",cursor:"pointer",color:a?A:TEXTD,borderBottom:a?`2px solid ${A}`:"2px solid transparent",letterSpacing:"0.08em",textTransform:"uppercase"}),
   body:    {display:"flex",flex:1,overflow:"hidden",minHeight:0},
   left:    {flex:1,overflowY:"auto",padding:"18px 16px 100px",minHeight:0},
   right:   {width:290,borderLeft:`1px solid ${BORDER}`,overflowY:"auto",padding:"16px 14px 80px",background:"rgba(10,15,30,0.5)",flexShrink:0,minHeight:0},
-  pill:    {fontSize:10,fontWeight:700,letterSpacing:"0.15em",textTransform:"uppercase",color:A,background:"rgba(245,158,11,0.1)",border:`1px solid rgba(245,158,11,0.2)`,borderRadius:20,padding:"3px 10px",display:"inline-block",marginBottom:10},
+  pill:    {fontSize:10,fontWeight:700,letterSpacing:"0.15em",textTransform:"uppercase",color:A,background:"rgba(78,127,184,0.1)",border:`1px solid rgba(78,127,184,0.25)`,borderRadius:20,padding:"3px 10px",display:"inline-block",marginBottom:10},
   sBox:    {background:CARD,borderRadius:14,padding:"16px 18px",marginBottom:12,border:`1px solid ${BORDER}`},
   sLbl:    {fontSize:10,fontWeight:700,letterSpacing:"0.15em",textTransform:"uppercase",color:TEXTD,marginBottom:7},
   sTxt:    {fontSize:16,color:TEXT,lineHeight:1.75,fontWeight:500},
   sSub:    {fontSize:14,color:TEXTM,lineHeight:1.7,marginTop:10,paddingTop:10,borderTop:`1px solid ${BORDER}`},
-  infoBox: {background:"rgba(245,158,11,0.07)",border:`1px solid rgba(245,158,11,0.2)`,borderRadius:10,padding:"11px 13px",marginBottom:12,fontSize:13,color:"#fcd34d",lineHeight:1.6},
+  infoBox: {background:"rgba(78,127,184,0.07)",border:`1px solid rgba(78,127,184,0.25)`,borderRadius:10,padding:"11px 13px",marginBottom:12,fontSize:13,color:"#93b8e8",lineHeight:1.6},
   noteBox: {background:"rgba(59,130,246,0.07)",border:`1px solid rgba(59,130,246,0.2)`,borderRadius:10,padding:"11px 13px",marginBottom:12,fontSize:13,color:"#93c5fd",lineHeight:1.6},
-  followUp:{background:"rgba(245,158,11,0.05)",border:`1px solid rgba(245,158,11,0.15)`,borderRadius:10,padding:"12px 14px",marginTop:10},
+  followUp:{background:"rgba(78,127,184,0.05)",border:`1px solid rgba(78,127,184,0.2)`,borderRadius:10,padding:"12px 14px",marginTop:10},
   followUpL:{fontSize:11,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:A,marginBottom:10},
   oGrid:   {display:"grid",gap:8,marginBottom:12},
-  oBtn:    (a)=>({background:a?"rgba(245,158,11,0.12)":INNER,border:`1.5px solid ${a?A:BORDERL}`,borderRadius:10,padding:"12px 14px",fontSize:14,fontWeight:600,color:a?A:TEXTM,cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:9,transition:"all 0.15s"}),
+  oBtn:    (a)=>({background:a?"rgba(78,127,184,0.12)":INNER,border:`1.5px solid ${a?A:BORDERL}`,borderRadius:10,padding:"12px 14px",fontSize:14,fontWeight:600,color:a?A:TEXTM,cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:9,transition:"all 0.15s"}),
   oDot:    (a)=>({width:7,height:7,borderRadius:"50%",background:a?A:BORDERL,flexShrink:0}),
   iGroup:  {marginBottom:10},
   lbl:     {fontSize:12,fontWeight:600,color:TEXTD,marginBottom:5,display:"block",letterSpacing:"0.03em"},
   inp:     {background:INNER,border:`1.5px solid ${BORDERL}`,borderRadius:9,color:TEXT,padding:"10px 12px",fontSize:14,outline:"none",width:"100%",boxSizing:"border-box",fontFamily:"inherit",WebkitAppearance:"none",appearance:"none"},
   sel:     {background:INNER,border:`1.5px solid ${BORDERL}`,borderRadius:9,color:TEXT,padding:"10px 12px",fontSize:14,outline:"none",width:"100%",boxSizing:"border-box",fontFamily:"inherit",WebkitAppearance:"none",appearance:"none",cursor:"pointer"},
-  nBtn:    {background:`linear-gradient(135deg,${A},#d97706)`,border:"none",borderRadius:10,color:DARK,fontSize:14,fontWeight:800,padding:"13px 20px",cursor:"pointer",width:"100%",letterSpacing:"0.02em",marginTop:4},
-  gBtn:    {background:`linear-gradient(135deg,${A},#d97706)`,border:"none",borderRadius:11,color:DARK,fontSize:15,fontWeight:800,padding:"16px",cursor:"pointer",width:"100%",letterSpacing:"0.02em",boxShadow:`0 8px 24px rgba(245,158,11,0.2)`},
+  nBtn:    {background:`linear-gradient(135deg,#1e3a6b,#2d5494)`,border:"none",borderRadius:10,color:"#e8f0fb",fontSize:14,fontWeight:800,padding:"13px 20px",cursor:"pointer",width:"100%",letterSpacing:"0.02em",marginTop:4},
+  gBtn:    {background:`linear-gradient(135deg,#1e3a6b,#2d5494)`,border:"none",borderRadius:11,color:"#e8f0fb",fontSize:15,fontWeight:800,padding:"16px",cursor:"pointer",width:"100%",letterSpacing:"0.02em",boxShadow:`0 8px 24px rgba(30,58,107,0.4)`},
   bkBtn:   {background:"transparent",border:`1px solid ${BORDERL}`,borderRadius:7,color:TEXTD,fontSize:11,fontWeight:600,padding:"5px 10px",cursor:"pointer"},
   ffT:     {fontSize:11,fontWeight:700,letterSpacing:"0.15em",textTransform:"uppercase",color:A,marginBottom:12},
   ffSec:   {marginBottom:14},
@@ -515,7 +515,7 @@ const S={
   edWrap:  {display:"flex",flex:1,overflow:"hidden",minHeight:0},
   edLeft:  {width:280,borderRight:`1px solid ${BORDER}`,overflowY:"auto",padding:"16px 12px",background:CARD,flexShrink:0,minHeight:0},
   edRight: {flex:1,overflowY:"auto",padding:"20px 24px 80px",minHeight:0},
-  edStepBtn:(a,type)=>({width:"100%",textAlign:"left",background:a?`rgba(245,158,11,0.12)`:type==="generate"?"rgba(16,185,129,0.08)":type==="info"?"rgba(59,130,246,0.08)":INNER,border:`1px solid ${a?A:BORDER}`,borderRadius:10,padding:"10px 12px",marginBottom:6,cursor:"pointer",color:a?A:TEXTM,fontSize:13,fontWeight:600,display:"flex",alignItems:"center",gap:8}),
+  edStepBtn:(a,type)=>({width:"100%",textAlign:"left",background:a?`rgba(78,127,184,0.12)`:type==="generate"?"rgba(16,185,129,0.08)":type==="info"?"rgba(59,130,246,0.08)":INNER,border:`1px solid ${a?A:BORDER}`,borderRadius:10,padding:"10px 12px",marginBottom:6,cursor:"pointer",color:a?A:TEXTM,fontSize:13,fontWeight:600,display:"flex",alignItems:"center",gap:8}),
   edCard:  {background:CARD,borderRadius:14,padding:"20px 22px",marginBottom:16,border:`1px solid ${BORDER}`},
   edH:     {fontSize:13,fontWeight:700,color:TEXT,marginBottom:14},
   edLbl:   {fontSize:11,fontWeight:600,color:TEXTD,marginBottom:5,display:"block",letterSpacing:"0.04em",textTransform:"uppercase"},
@@ -580,17 +580,17 @@ function ObjectionsPanel(){
         {OBJECTIONS.map((obj,i)=>(
           <button key={i}
             style={{fontSize:11,fontWeight:600,padding:"5px 10px",borderRadius:6,border:"1px solid",cursor:"pointer",transition:"all 0.15s",
-              background:active===i?"rgba(245,158,11,0.12)":"transparent",
-              borderColor:active===i?"rgba(245,158,11,0.5)":"rgba(255,255,255,0.12)",
-              color:active===i?"#f59e0b":"#9ca3af"}}
+              background:active===i?"rgba(78,127,184,0.15)":"transparent",
+              borderColor:active===i?"rgba(78,127,184,0.6)":"rgba(255,255,255,0.1)",
+              color:active===i?"#7fb3e0":"#7d9ab8"}}
             onClick={()=>setActive(active===i?null:i)}>
             {obj.label}
           </button>
         ))}
       </div>
       {active!=null&&(
-        <div style={{background:"rgba(245,158,11,0.06)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:10,padding:"12px 14px",marginTop:4}}>
-          <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:"rgba(245,158,11,0.7)",marginBottom:8}}>SAY THIS</div>
+        <div style={{background:"rgba(78,127,184,0.06)",border:"1px solid rgba(78,127,184,0.22)",borderRadius:10,padding:"12px 14px",marginTop:4}}>
+          <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:"rgba(78,127,184,0.8)",marginBottom:8}}>SAY THIS</div>
           <ScriptText text={OBJECTIONS[active].script} style={{fontSize:14,lineHeight:1.6,color:"#e5e7eb"}}/>
         </div>
       )}
@@ -648,7 +648,7 @@ function StepControls({step,ff,onAnswer,onInputNext}){
   );
   if(step.type==="generate")return(
     <div>
-      <div style={S.infoBox}>✅ All information captured. Tap below to generate the full LifeLogic advice report.</div>
+      <div style={S.infoBox}>✅ All information captured. Tap below to generate the full First Thought Financial advice report.</div>
       <button style={S.gBtn} onClick={()=>onAnswer("generate",null)}>⚡ Generate Advice Report</button>
     </div>
   );
@@ -664,7 +664,7 @@ function StepControls({step,ff,onAnswer,onInputNext}){
       {sel&&activeFollowUp&&(
         <div style={S.followUp}>
           {activeFollowUp.script&&(
-            <div style={{...S.sBox,marginBottom:12,background:"rgba(245,158,11,0.04)"}}>
+            <div style={{...S.sBox,marginBottom:12,background:"rgba(78,127,184,0.04)"}}>
               <div style={S.sLbl}>SAY THIS</div>
               <ScriptText text={activeFollowUp.script} style={{...S.sTxt,fontSize:15}} />
             </div>
@@ -1041,14 +1041,12 @@ function Editor({steps,onSave,onReset}){
 // ── MAIN APP ──────────────────────────────────────────────────────────────────
 export default function App(){
   const[mode,setMode]=useState("live");
-  // callMode: "one" = one-call blended, "two" = two-call (fact find + pitch)
-  const[callMode,setCallMode]=useState("one");
-  const activeDefaultSteps=callMode==="two"?TWO_CALL_STEPS:ONE_CALL_STEPS;
-  const activeSections=callMode==="two"?SECTIONS_TWO_CALL:SECTIONS_ONE_CALL;
+  const activeDefaultSteps=ONE_CALL_STEPS;
+  const activeSections=SECTIONS_ONE_CALL;
 
   const[steps,setSteps]=useState(()=>{
     try{
-      const s=localStorage.getItem("ll_steps_"+callMode);
+      const s=localStorage.getItem("ll_steps_one");
       return s?JSON.parse(s):activeDefaultSteps;
     }catch(e){return activeDefaultSteps;}
   });
@@ -1060,23 +1058,11 @@ export default function App(){
   const[error,setError]=useState(null);
   const[tab,setTab]=useState("script");
 
-  // When call mode changes, load that mode's steps and reset the call
-  function switchCallMode(newMode){
-    setCallMode(newMode);
-    const defaults=newMode==="two"?TWO_CALL_STEPS:ONE_CALL_STEPS;
-    let loaded=defaults;
-    try{const s=localStorage.getItem("ll_steps_"+newMode);if(s)loaded=JSON.parse(s);}catch(e){}
-    setSteps(loaded);
-    setStepId(loaded[0]?.id||"intro");
-    setHistory([loaded[0]?.id||"intro"]);
-    setFF({});setResult(null);setError(null);
-  }
-
   const step=steps.find(s=>s.id===stepId);
   const secIdx=activeSections.indexOf(step?.section);
   const pct=step?.type==="generate"||result?100:Math.round((secIdx/(activeSections.length-1))*100);
 
-  function saveSteps(ns){setSteps(ns);try{localStorage.setItem("ll_steps_"+callMode,JSON.stringify(ns));}catch(e){}}
+  function saveSteps(ns){setSteps(ns);try{localStorage.setItem("ll_steps_one",JSON.stringify(ns));}catch(e){}}
   function resetSteps(){saveSteps(activeDefaultSteps);setStepId(activeDefaultSteps[0].id);setHistory([activeDefaultSteps[0].id]);}
   function go(nextId){if(!nextId)return;setHistory(h=>[...h,nextId]);setStepId(nextId);}
 
@@ -1115,19 +1101,12 @@ export default function App(){
   return(
     <div style={S.page}>
       <div style={S.header}>
-        <div style={S.logoMk}>LL</div>
-        <div><div style={S.logoT}>LifeLogic Live</div><div style={S.logoS}>Call Companion</div></div>
+        <div style={S.logoMk}><span style={{color:"#e8f0fb",fontWeight:800,fontSize:13,letterSpacing:"0.02em"}}>FTF</span></div>
+        <div><div style={S.logoT}>First Thought Financial</div><div style={S.logoS}>Protection Adviser</div></div>
         <div style={{marginLeft:16}}><div style={S.modeTabs}>
           <button style={S.modeTab(mode==="live")} onClick={()=>setMode("live")}>📞 Live</button>
           <button style={S.modeTab(mode==="editor")} onClick={()=>setMode("editor")}>✏️ Editor</button>
         </div></div>
-        {/* Call mode toggle — shown always */}
-        <div style={{marginLeft:12}}>
-          <div style={S.callTabs}>
-            <button style={S.callTab(callMode==="one")} onClick={()=>switchCallMode("one")} title="One-call blended — fact find and pitch in a single call">1-Call</button>
-            <button style={S.callTab(callMode==="two")} onClick={()=>switchCallMode("two")} title="Two-call process — fact find on call 1, pitch on call 2">2-Call</button>
-          </div>
-        </div>
         <div style={{marginLeft:"auto",display:"flex",gap:8,alignItems:"center"}}>
           {mode==="live"&&<>
             {history.length>1&&!result&&<button onClick={goBack} style={S.bkBtn}>← Back</button>}
@@ -1168,7 +1147,7 @@ export default function App(){
               {step&&!result&&!loading&&<StepControls step={step} ff={ff} onAnswer={onAnswer} onInputNext={onInputNext}/>}
               {loading&&<div style={S.spin}><span style={{animation:"spin 1s linear infinite",display:"inline-block",color:A,fontSize:20}}>◌</span> Generating advice report…</div>}
               {error&&<div style={S.err}>{error}</div>}
-              {result&&<div style={S.outBox}><p style={S.outH}>Advice Report</p><p style={S.outSub}>GENERATED BY LIFELOGIC AI</p><hr style={{border:"none",borderTop:`1px solid ${BORDER}`,margin:"0 0 12px 0"}}/><pre style={S.pre}>{result}</pre></div>}
+              {result&&<div style={S.outBox}><p style={S.outH}>Advice Report</p><p style={S.outSub}>GENERATED BY FIRST THOUGHT FINANCIAL</p><hr style={{border:"none",borderTop:`1px solid ${BORDER}`,margin:"0 0 12px 0"}}/><pre style={S.pre}>{result}</pre></div>}
             </div>
             <div style={{...S.right,display:"block"}}><FFSummary ff={ff}/></div>
           </div>
@@ -1184,7 +1163,7 @@ export default function App(){
         body{background:${DARK}}
         html,body,#root{height:100%;overflow:hidden}
         select option{background:#1a2235;color:#f9fafb}
-        input:focus,select:focus,textarea:focus{border-color:${A}!important;box-shadow:0 0 0 3px rgba(245,158,11,0.12)!important;outline:none}
+        input:focus,select:focus,textarea:focus{border-color:${A}!important;box-shadow:0 0 0 3px rgba(78,127,184,0.15)!important;outline:none}
         ::placeholder{color:#4b5563}
         ::-webkit-scrollbar{width:4px}
         ::-webkit-scrollbar-track{background:transparent}
