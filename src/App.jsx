@@ -17,7 +17,7 @@ const TWO_CALL_STEPS = [
   // ── CALL 1: FACT FIND ──────────────────────────────────────────────────────
 
   { id:"c1_intro", section:"Introduction", script:"Hi, is that [firstName]?",
-    subScript:"Hi [firstName], it's [Your Name] calling from First Thought Financial — I'm calling because you recently made an enquiry about Income Protection. I just need to run through a quick fact-find with you to make sure I put together the right recommendation, and then I'll go away and research the best options across the market, and call you back with the quotes. Does that sound OK?",
+    subScript:"Hi [firstName], it's [Your Name] calling from First Thought Financial regarding your online enquiry about Income Protection that you made (DAY)\n\nIt's just a quick call to understand a bit about your situation and what you'd want the cover to do, so we can make sure we're looking at the right type of policy for you.\n\nWould you mind giving me a quick overview of your situation and what made you look into Income Protection?",
     type:"tap", options:["Yes, go ahead","Not a good time"], note:"",
     next:"IF:options[0]:c1_idd|ELSE:c1_bad_time" },
 
@@ -25,22 +25,20 @@ const TWO_CALL_STEPS = [
     type:"info", options:[], note:"Note the callback time and end the call.", next:"ALWAYS:c1_intro" },
 
   { id:"c1_idd", section:"Introduction",
-    script:"Before we start, I'm required to let you know that I act as an independent protection broker, which means I search the whole market on your behalf rather than just one insurer. I get paid by commission from the insurer when a policy is placed, and there's no charge to you at any point. Is that all fine?",
-    type:"tap", options:["Yes, that's fine","Tell me more"], note:"",
-    followUps:[
-      { optionIndex:1, script:"I'll search across all the major providers including Aviva, Legal & General, Zurich, Royal London, LV= and others. You get independent advice at no cost to you — the insurers pay me a commission when you take a policy out. Happy to continue?", inputs:[] }
-    ],
+    script:"Just to let you know, I'm fully qualified to provide advice. We're authorised and regulated by the Financial Conduct Authority, our calls are recorded, and we won't pass your details on.",
+    type:"info", options:[], note:"",
     next:"ALWAYS:c1_dpa" },
 
   { id:"c1_dpa", section:"Introduction",
-    script:"Great. Can I just confirm your full name, date of birth, and the first line of your address and postcode for Data Protection?",
+    script:"Before we go any further, would you mind confirming your postcode and date of birth?",
     type:"input",
     inputs:[{key:"firstName",label:"First Name",placeholder:"John"},{key:"lastName",label:"Last Name",placeholder:"Smith"},{key:"dob",label:"Date of Birth",inputType:"date"},{key:"address",label:"Address / Postcode",placeholder:"e.g. 12 High Street, SW1A 1AA"}],
     note:"", next:"ALWAYS:c1_overview" },
 
   { id:"c1_overview", section:"Situation",
-    script:"Great, thanks. So let me just get a brief overview of your situation — what made you look into Income Protection, and where are you at right now?",
-    type:"info", options:[], note:"Listen carefully. Let them talk — don't cut them off. Note any key details.", next:"ALWAYS:c1_marital" },
+    script:"Have you ever had Income Protection before, or is this the first time you've looked into it?",
+    subScript:"No problem. The easiest way to think of it is like having your own personal sick pay. If you're unable to work because of an illness or injury, it will provide you with a monthly income so you can still cover your bills and living expenses.\n\nTo qualify for a payout you just need to be signed off work by your GP, regardless of the reason or medical condition, as long as your GP (or any medical professional) signs you off, you'll be eligible to claim on the policy, ok?\n\nBecause everyone's circumstances are different, I'll get an idea of your situation first and then we can work out together how much cover you'd need and when you'd need it to start.",
+    type:"info", options:[], note:"", next:"ALWAYS:c1_marital" },
 
   { id:"c1_marital", section:"Situation",
     script:"Are you single, or do you have a partner or spouse?",
@@ -90,33 +88,23 @@ const TWO_CALL_STEPS = [
     next:"ALWAYS:c1_existing_cover" },
 
   { id:"c1_existing_cover", section:"Situation",
-    script:"Do you have any existing protection insurance in place at the moment — anything like Life Insurance or Income Protection?",
+    script:"I'll explain the Income Protection in a little more detail, but just so I've got the full picture, do you currently have any Income Protection, Life Insurance or Critical Illness Cover in place?",
     type:"tap", options:["No existing cover","Yes — Life Insurance","Yes — Income Protection","Yes — multiple policies"], ffKey:"existingCover", note:"",
     followUps:[
-      { optionIndex:1, inputs:[{key:"lifeProvider",label:"Provider",placeholder:"e.g. Aviva"},{key:"lifeCoverAmount",label:"Cover Amount (£)",placeholder:"300000",inputType:"number"},{key:"lifePremium",label:"Monthly Premium (£)",placeholder:"45",inputType:"number"}] },
+      { optionIndex:1, script:"Okay, perfect. Which insurer is that with?\n\nInsurers offer multi-product discount if you have multiple policies with them so I'll consider that when I look at the Income Protection", inputs:[{key:"lifeProvider",label:"Provider",placeholder:"e.g. Aviva"},{key:"lifeCoverAmount",label:"Cover Amount (£)",placeholder:"300000",inputType:"number"},{key:"lifePremium",label:"Monthly Premium (£)",placeholder:"45",inputType:"number"}] },
       { optionIndex:2, inputs:[{key:"existingIPDetail",label:"Policy details",placeholder:"e.g. Aviva, £2000/mo, 3 month deferred"}] },
       { optionIndex:3, inputs:[{key:"existingCoverDetail",label:"Brief overview of all policies",placeholder:"e.g. Life with Aviva, IP with LV="}] },
     ],
-    next:"ALWAYS:c1_explain_ip" },
-
-  { id:"c1_explain_ip", section:"Income Protection",
-    script:"So — Income Protection. Very quickly, let me explain what it is and how it works.",
-    subScript:"Basically, if you were signed off work by your doctor due to illness or injury — and that covers everything from a broken leg to cancer to depression — the policy would pay you a set monthly amount, tax free, directly into your bank account. It keeps paying for as long as you're off work, right up to your retirement if it came to it. As long as your GP signs you off, you can claim. Does that make sense?",
-    type:"tap", options:["Yes, makes sense","Can you explain more?"], note:"",
-    next:"IF:options[0]:c1_outgoings|ELSE:c1_ip_more" },
-
-  { id:"c1_ip_more", section:"Income Protection",
-    script:"Think of it as a replacement salary paid by the insurer. So if you broke your leg and couldn't work for 3 months, the policy would pay your agreed monthly amount straight into your bank — like getting paid without working. It's that simple. And unlike most insurance, you can claim as many times as you need to. Clear now?",
-    type:"tap", options:["Yes, got it"], note:"", next:"ALWAYS:c1_outgoings" },
+    next:"ALWAYS:c1_outgoings" },
 
   { id:"c1_outgoings", section:"Monthly Benefit",
-    script:"OK, so to work out how much cover you'd need — what would you say your total monthly outgoings are? I'm talking everything: bills, food, rent or mortgage, travel, everything you spend in a month.",
+    script:"You mentioned your rent/mortgage is £X per month. Roughly what would you say your total household outgoings are each month once we include things like bills, food, council tax — anything that you'd still need to pay if you weren't working?",
     type:"input",
     inputs:[{key:"totalOutgoings",label:"Total Monthly Outgoings (£)",placeholder:"3500",inputType:"number"}],
     note:"", next:"ALWAYS:c1_benefit_check" },
 
   { id:"c1_benefit_check", section:"Monthly Benefit",
-    script:"So if you weren't working, would [outgoings] per month be enough to cover everything — or would you need a bit more?",
+    script:"Okay, based on everything you've told me, shall we start by looking at around £[benefit] per month of cover?",
     type:"tap", options:["Yes, that covers it","I'd need a bit more","I could manage on less"], ffKey:"benefitConfirm", note:"",
     followUps:[
       { optionIndex:1, script:"How much would you need?", inputs:[{key:"benefitAdjust",label:"Monthly amount needed (£)",placeholder:"e.g. 3800",inputType:"number"}] },
@@ -124,76 +112,80 @@ const TWO_CALL_STEPS = [
     next:"IF:marital=Partner / Spouse:c1_partner_contrib|ELSE:c1_sick_pay" },
 
   { id:"c1_partner_contrib", section:"Monthly Benefit",
-    script:"Would your partner still be working and contributing to the bills if you were off sick — or would you need to cover everything yourself?",
+    script:"I know we're looking at the cover just for you, but it's helpful for me to understand the household finances as a whole.\n\nSo your household outgoings are around £X a month — roughly how much does your partner bring home each month? It just helps me understand what sort of shortfall there would be if your income stopped.",
+    subScript:"And how do you normally split the household outgoings between you?",
     type:"tap", options:["Partner would contribute","I'd need to cover it all"], ffKey:"partnerContrib", note:"",
     followUps:[
-      { optionIndex:0, script:"What's your partner's monthly take-home pay?", inputs:[{key:"partnerIncome",label:"Partner's Monthly Take-home (£)",placeholder:"2400",inputType:"number"}] },
+      { optionIndex:0, script:"And how do you normally split the household outgoings between you?", inputs:[{key:"partnerIncome",label:"Partner's Monthly Take-home (£)",placeholder:"2400",inputType:"number"}] },
     ],
     next:"ALWAYS:c1_sick_pay" },
 
   { id:"c1_sick_pay", section:"Waiting Period",
-    script:"Do you get any sick pay from your employer?",
+    script:"Next we need to work out how quickly you'd need the policy to start paying if you couldn't work — and we can tailor this around your circumstances.\n\nDo you receive any sick pay from your employer?",
     type:"tap", options:["Yes — full pay","Yes — partial pay","No sick pay","Self-employed — no sick pay"], ffKey:"sickPayType", note:"",
     followUps:[
       { optionIndex:0, script:"How long does it last at full pay?", inputs:[{key:"sickPayDuration",label:"Duration",type:"select",options:["1 month","2 months","3 months","4–6 months","6+ months"]}] },
       { optionIndex:1, script:"How long does it last at partial pay?", inputs:[{key:"sickPayDuration",label:"Duration",type:"select",options:["1 month","2 months","3 months","4–6 months","6+ months"]}] },
-      { optionIndex:2, script:"Do you have any savings you could fall back on?", inputs:[{key:"savingsLevel",label:"Savings",type:"select",options:["No / very little","1–2 months worth","3+ months worth"]}] },
-      { optionIndex:3, script:"Do you have any savings you could fall back on?", inputs:[{key:"savingsLevel",label:"Savings",type:"select",options:["No / very little","1–2 months worth","3+ months worth"]}] },
+      { optionIndex:2, script:"And do you have any savings you'd be comfortable relying on if you were off work?", inputs:[{key:"savingsYesNo",label:"Savings?",type:"select",options:["Yes","No"]},{key:"savingsLevel",label:"Savings (if yes)",type:"select",options:["No / very little","1–2 months worth","3+ months worth"]}] },
+      { optionIndex:3, script:"And do you have any savings you'd be comfortable relying on if you were off work?", inputs:[{key:"savingsYesNo",label:"Savings?",type:"select",options:["Yes","No"]},{key:"savingsLevel",label:"Savings (if yes)",type:"select",options:["No / very little","1–2 months worth","3+ months worth"]}] },
     ],
     next:"ALWAYS:c1_deferred_explain" },
 
   { id:"c1_deferred_explain", section:"Waiting Period",
-    script:"There's one more thing to consider — something called the deferred period. In simple terms, it's how long you have to be off work before the policy starts paying out. The longer you wait, the cheaper the premium. I'll use what you've just told me to recommend the most suitable one for you.",
-    type:"info", options:[], note:"", next:"ALWAYS:c1_budget" },
+    script:"Okay, shall we start by looking at a [X]-month waiting period? Does that feel reasonable to you?",
+    type:"tap", options:["Yes, that works","I'd prefer shorter","I'd prefer longer"], note:"", next:"ALWAYS:c1_budget" },
 
   { id:"c1_budget", section:"Budget",
-    script:"Just before I go away to research — do you have a rough monthly budget in mind for this, or would you prefer I just find the best policy and present the cost to you?",
+    script:"Perfect, now the last thing to consider is budget.\n\nThe cost of Income Protection can vary significantly — anywhere from £30–£40 per month up to £200–£300 depending on how comprehensive you want to go, so it's important that this is affordable for you long term.\n\nHave you got a budget in mind that you'd like me to try and work to?",
     type:"tap", options:["I have a rough budget in mind","Just find the best option"], ffKey:"hasBudget", note:"",
     followUps:[
-      { optionIndex:0, script:"What sort of monthly amount were you thinking?", inputs:[{key:"budget",label:"Monthly Budget (£)",placeholder:"40",inputType:"number"}] },
+      { optionIndex:0, script:"Ok no problem, what I'll do is look at the best options available around (BUDGET). If there's something considerably better but slightly outside of budget, I'll still let you know that option as well so you can see the difference.", inputs:[{key:"budget",label:"Monthly Budget (£)",placeholder:"40",inputType:"number"}] },
     ],
     next:"ALWAYS:c1_summarise" },
 
   { id:"c1_summarise", section:"Summary",
-    script:"Great. So let me just recap what we've agreed — I'm going to look for an Income Protection policy that will pay you [benefit] per month if you're signed off work for any reason, with a deferred period of [DEFERRED]. [DEFERRED_REASON]. That'll run right up to your state pension age.\n\nDoes that all sound right?",
+    script:"So, based on what we've discussed, we're looking for a policy that will provide £[benefit] per month, after a [X]-week waiting period, if you were unable to work due to illness or injury.\n\nAnd this will ensure you've still got an income to fall back on so you can continue covering the important monthly outgoings if you're unable to work.\n\nDoes that all make sense?",
+    subScript:"Any questions on any of that before I go away and look at the options?",
     type:"tap", options:["Yes, that's right","I want to change something"], ffKey:"summaryConfirm", note:"", next:"ALWAYS:c1_life_mention" },
 
   { id:"c1_life_mention", section:"Life Cover",
-    script:"One other thing I'll have a look at while I'm researching — just to give you peace of mind. While Income Protection covers you if you're off work, it doesn't pay out if you die. So if you have a partner, a mortgage, or children, I'll also run some quick Life Insurance numbers alongside it, just so you can see the full picture.",
-    type:"tap", options:["Yes, please do","I'm happy with just the IP"], ffKey:"lifeResearchOK", note:"Only mention if client has a partner, mortgage, or kids.",
+    script:"Just before you go, you mentioned earlier that you don't currently have any Life Insurance in place.\n\nIs that something you've ever looked into before, or has it just not really been something you've considered?",
+    subScript:"The only reason I mention it is that while we're looking at protecting your income if you're unable to work, if the worst were to happen and you passed away, the household would obviously lose that income altogether — so it's the same situation.\n\nLife Insurance can often be relatively low cost, so while I'm looking at your Income Protection options, I can have a quick look at Life Insurance as well for you. That way, when we speak again, you've got the option there and can decide whether it's something you want to consider.",
+    type:"tap", options:["Yes, please do","I'm happy with just the IP"], ffKey:"lifeResearchOK", note:"Use this version if client has NO existing life insurance. If they DO have life insurance, use: 'Just before you go, you mentioned earlier that you already have some Life Insurance in place. Some insurers offer multi-product discounts when you have Income Protection and Life Insurance together, so it will be worth me having a quick look at what you already have while I'm doing the Income Protection.'",
     next:"ALWAYS:c1_callback" },
 
   { id:"c1_callback", section:"Summary",
-    script:"Perfect. I'll go away and research that now — it'll take me around 10 to 15 minutes. What's the best number to reach you on, and when are you free for me to call back?",
+    script:"Perfect. Give me around 10–15 minutes and I'll call you back, explain what I've found and take you through the options.\n\nAnd if you can grab a pen and paper for when I call back, that would be great.",
+    subScript:"What's the best number to reach you on, and what time suits you for me to call back?",
     type:"input",
     inputs:[{key:"callbackNumber",label:"Best number to call back on",placeholder:"07700 900000"},{key:"callbackTime",label:"Callback time",placeholder:"e.g. in 15 mins, 2pm today"}],
     note:"Confirm the callback is booked before ending the call.", next:"ALWAYS:c1_end" },
 
   { id:"c1_end", section:"Summary",
-    script:"Brilliant. I'll speak to you [callbackTime]. All the information has been captured — tap below to generate your advice report now while you research.",
+    script:"Perfect. Give me 10–15 minutes and I'll speak to you at around [callbackTime].\n\nSpeak to you shortly.",
     type:"generate", options:[], note:"", next:"ALWAYS:null" },
 
   // ── CALL 2: PITCH ──────────────────────────────────────────────────────────
 
   { id:"c2_intro", section:"Call 2 — Pitch",
-    script:"Hi, is that [firstName]? It's [Your Name] from First Thought Financial calling back.",
-    subScript:"Before we go through your options — can I just ask you to confirm the first line of your address and postcode for me again for Data Protection?",
-    type:"input",
-    inputs:[{key:"dpaConfirm",label:"Address confirmed?",placeholder:"Confirmed"}],
+    script:"Hi [firstName], it's [Your Name] from First Thought Financial again.",
+    subScript:"So I've had a look through the options based on everything we discussed earlier.\n\nDid you manage to grab a pen and paper?",
+    type:"tap", options:["Yes, ready","One moment…"],
     note:"", next:"ALWAYS:c2_preamble" },
 
   { id:"c2_preamble", section:"Call 2 — Pitch",
-    script:"Right — I've completed my research and I can now run through the recommendation and quotes with you. This is based on what I would do if I were in your shoes — but of course we can make some tweaks once we've gone through it, OK?\n\nDo you have a pen and paper handy to jot anything down?",
-    type:"tap", options:["Yes, go ahead","One moment…"], note:"", next:"ALWAYS:c2_ip_explain" },
+    script:"Perfect, any questions as I'm running through this please just stop me, ok?\n\nSo just to quickly recap, we're looking at a policy that will pay you £[benefit] per month in the event you're unable to work due to any illness or accident so you can still cover all your essential bills.\n\nThe policy will begin to pay you after a [DEFERRED] waiting period and cover you until age [SPA], so it gives you that safety net throughout your working life, ok?",
+    note:"If client provided budget, add: 'and the good news is, it looks like we can get everything you need within/around the budget you set'",
+    type:"tap", options:["Yes, go ahead","One moment…"], next:"ALWAYS:c2_ip_explain" },
 
   { id:"c2_ip_explain", section:"Call 2 — Pitch",
-    script:"So — the first thing I want to cover is the Income Protection, which is the main reason you got in touch.",
-    subScript:"What I'm recommending is a policy that will pay you [benefit] per month if you're signed off work by your doctor for any reason — whether that's illness, injury, or mental health. It'll pay out after a waiting period of [DEFERRED], and it'll keep paying for as long as you need it, right up to your state pension age. As long as your GP signs you off, you're covered. Does that make sense?",
+    script:"We've got a number of different insurers offering the cover but the one I'd recommend is [PROVIDER] as they [REASON]",
+    subScript:"The premium for everything would be £[PREMIUM] per month and that price is guaranteed, which means it will never increase with age, health or even if you make a claim on the policy — it will always remain fixed at £[PREMIUM] per month.",
     type:"tap", options:["Yes, makes sense","Can you explain more?"], note:"",
     next:"ALWAYS:c2_provider_premium" },
 
   { id:"c2_provider_premium", section:"Call 2 — Pitch",
-    script:"I've searched across the whole market — and the most competitive provider right now is [PROVIDER], and the premium is [PREMIUM] per month.\n\nNow I always say — the premium is fixed. It won't increase with age, and it won't go up after a claim. It stays at [PREMIUM] for the life of the policy. Does that sound comfortable?",
+    script:"Like I said, there's plenty of other insurers offering the cover but they are all offering the same benefits so there's no point paying more than what you need to.\n\nSo basically, we're looking at £[PREMIUM] per month and that will give you £[benefit] monthly income after [DEFERRED], right through until age [SPA].\n\nHow does that sound?",
     type:"tap", options:["Yes, comfortable","It's a bit much","Need to think about it"], ffKey:"affordability", note:"",
     followUps:[
       { optionIndex:1, script:"What sort of monthly amount would work for you?", inputs:[{key:"budget",label:"Target monthly amount (£)",placeholder:"35",inputType:"number"}] },
@@ -201,29 +193,20 @@ const TWO_CALL_STEPS = [
     next:"ALWAYS:c2_claim_types" },
 
   { id:"c2_claim_types", section:"Call 2 — Pitch",
-    script:"Just so you're fully in the picture on how it pays out — there are two types of policy.\n\nOption 1 is full-term: if you were off work and unable to return — worst-case scenario — it would pay out right up to your state pension age. That gives you the maximum protection.\n\nOption 2 is shorter-term: it pays for up to 2 years per claim. But — and this is important — you can claim unlimited times. So if you recovered, went back to work, and then had another issue, you can claim again. It's more cost-effective, and suits some people very well.\n\nBased on your situation, I'd recommend [OPTION]. But I've got quotes for both. Which would you like to look at first?",
-    type:"tap", options:["Full term first","Short term first","Show me both"], ffKey:"quotePreference", note:"", next:"ALWAYS:c2_life_upsell_check" },
-
-  { id:"c2_life_upsell_check", section:"Call 2 — Pitch",
-    script:"Now — the other thing I wanted to mention.",
-    type:"tap", options:["They have a partner / kids / mortgage","Single, no dependants"], ffKey:"lifeUpsellRoute", note:"Route based on client situation",
-    next:"IF:options[0]:c2_life_upsell_existing|ELSE:c2_close" },
-
-  { id:"c2_life_upsell_existing", section:"Call 2 — Pitch",
-    script:"Do you have any Life Insurance in place at the moment?",
-    type:"tap", options:["Yes","No"], ffKey:"hasLife", note:"",
-    next:"IF:options[0]:c2_existing_life|ELSE:c2_no_life" },
+    script:"You can claim as many times as you need to on the policy without it affecting the price.\n\nWith a full-term policy, there is no limit on how long you can claim — for example if you suffered from something that prevented you from doing your job ever again, you would receive this income until you reach the end of the policy.\n\nWith a shorter-term policy, each time you're off work you can claim for a maximum of 1, 2 or 5 years. After that, you'd just need to return to work for 6 months before you can claim again for the same condition — and this can be more cost-effective.\n\nDoes that make sense?",
+    type:"tap", options:["Full term","Short term","Show me both"], ffKey:"quotePreference", note:"", next:"ALWAYS:c2_close" },
 
   { id:"c2_no_life", section:"Call 2 — Pitch",
-    script:"Right — so Income Protection covers you if you can't work. But what about if you were to die? Your partner and family would still have the mortgage and the bills to deal with — without your income.\n\nI've looked at Life Insurance for you alongside this. I'd recommend a policy that would pay off the mortgage and leave your family financially secure. It would actually work out cheaper to set up both together, and some providers offer a multi-product discount. Would you like me to run through those numbers?",
-    type:"tap", options:["Yes, please do","No thanks — just IP for now"], ffKey:"lifeUpsell", note:"", next:"ALWAYS:c2_close" },
+    script:"Now, we also briefly spoke about Life Insurance earlier.\n\nWhile the Income Protection protects you if you're unable to work, Life Insurance is there if you passed away — and this will provide a lump sum to help protect [your partner / children / mortgage / family] financially.\n\nWhat I'd recommend looking at is £[X] of Life Insurance over [X] years.\n\nThe premium for that would be £[X] per month. As with the Income Protection, the premium is guaranteed to remain the same throughout the whole policy.\n\nSo if you did the Life Insurance alongside the Income Protection, you'd be looking at £[X] per month in total.\n\nIs that comfortable?",
+    type:"tap", options:["Yes, comfortable","No thanks — just IP for now"], ffKey:"lifeUpsell", note:"", next:"ALWAYS:c2_close" },
 
   { id:"c2_existing_life", section:"Call 2 — Pitch",
-    script:"OK — I've had a look at that policy. I'd want to review whether it's the right amount, the right type, and whether it's still fit for purpose given your current situation. Sometimes people have cover that's either too low, the wrong structure, or costing more than it should.\n\nWould you like me to run through what I'd recommend alongside the IP?",
-    type:"tap", options:["Yes, please review it","No thanks — just the IP for now"], ffKey:"lifeReviewAgreed", note:"", next:"ALWAYS:c2_close" },
+    script:"Now, as promised I also reviewed your existing cover with [INSURER] — and to be honest, I think there's a slightly better way you can run this policy.\n\nMy concern with it is [EXPLAIN SHORTFALL].\n\nSo what I would do instead is look at [RECOMMENDATION].\n\nThe cost for the policy is £[X] per month, so we're basically looking at an extra £[X] compared with what you're currently paying but will give you far better cover.\n\nWould the additional £[X] per month still be comfortable for you?",
+    type:"tap", options:["Yes, comfortable","No thanks — just the IP for now"], ffKey:"lifeReviewAgreed", note:"", next:"ALWAYS:c2_close" },
 
   { id:"c2_close", section:"Call 2 — Pitch",
-    script:"Perfect. So the next step is just to run through a short set of medical questions with the insurer — these are standard health declaration questions, and based on what you've already told me, it should be very straightforward. It only takes a few minutes.\n\nWhile those are loading — let me just mention a few of the additional benefits you get with [PROVIDER] as standard…",
+    script:"Perfect. All I need to do is go through a few health and lifestyle questions so we can make sure you can be accepted for the policy.",
+    subScript:"Just so you know as well, the policy also comes with [add relevant policy benefits e.g. 24/7 GP Service, fracture cover].\n\nSo there's some great additional support there alongside the core Income Protection, ok?",
     type:"info", options:[], note:"Mention 3 provider benefits and payout rate here — look these up in advance.", next:"ALWAYS:c2_generate" },
 
   { id:"c2_generate", section:"Call 2 — Pitch",
@@ -237,7 +220,7 @@ const ONE_CALL_STEPS = [
 
   { id:"intro", section:"Introduction",
     script:"Hi, is that [firstName]?",
-    subScript:"Hi [firstName], it's [Your Name] calling from First Thought Financial. You recently made an enquiry about Income Protection, so I'm calling to help with that today. I just need to grab a few quick details first — it won't take long. Is that OK?",
+    subScript:"Hi [firstName], it's [Your Name] calling from First Thought Financial regarding your online enquiry about Income Protection that you made (DAY)\n\nIt's just a quick call to understand a bit about your situation and what you'd want the cover to do, so we can make sure we're looking at the right type of policy for you.\n\nWould you mind giving me a quick overview of your situation and what made you look into Income Protection?",
     type:"tap", options:["Yes, go ahead","Not a good time"], note:"",
     next:"IF:options[0]:idd|ELSE:bad_time" },
 
@@ -246,22 +229,20 @@ const ONE_CALL_STEPS = [
     type:"info", options:[], note:"Note the callback time and end the call.", next:"ALWAYS:intro" },
 
   { id:"idd", section:"Introduction",
-    script:"Before we start — just so you know, I'm an independent broker, so I search across the whole market for you rather than being tied to one insurer. There's no charge to you — I'm paid by commission from the insurer if you take a policy out. Happy for me to proceed on that basis?",
-    type:"tap", options:["Yes, that's fine","Tell me more"],
-    followUps:[
-      { optionIndex:1, script:"I'll search providers like Aviva, Legal & General, Zurich, Royal London, LV= and others. Independent advice, no cost to you. Happy to continue?", inputs:[] }
-    ],
+    script:"Just to let you know, I'm fully qualified to provide advice. We're authorised and regulated by the Financial Conduct Authority, our calls are recorded, and we won't pass your details on.",
+    type:"info", options:[],
     note:"", next:"ALWAYS:data_protection" },
 
   { id:"data_protection", section:"Introduction",
-    script:"Can I just confirm the first line of your address and postcode for Data Protection, and your full name and date of birth?",
+    script:"Before we go any further, would you mind confirming your postcode and date of birth?",
     type:"input",
     inputs:[{key:"firstName",label:"First Name",placeholder:"John"},{key:"lastName",label:"Last Name",placeholder:"Smith"},{key:"dob",label:"Date of Birth",inputType:"date"},{key:"address",label:"Address / Postcode",placeholder:"e.g. 12 High Street, SW1A 1AA"}],
     note:"", next:"ALWAYS:situation_overview" },
 
   { id:"situation_overview", section:"Situation",
-    script:"So — what made you look into Income Protection, and where are you at right now?",
-    type:"info", options:[], note:"Let them talk. Listen carefully. Note any key details before continuing.", next:"ALWAYS:marital" },
+    script:"Have you ever had Income Protection before, or is this the first time you've looked into it?",
+    subScript:"No problem. The easiest way to think of it is like having your own personal sick pay. If you're unable to work because of an illness or injury, it will provide you with a monthly income so you can still cover your bills and living expenses.\n\nTo qualify for a payout you just need to be signed off work by your GP, regardless of the reason or medical condition, as long as your GP (or any medical professional) signs you off, you'll be eligible to claim on the policy, ok?\n\nBecause everyone's circumstances are different, I'll get an idea of your situation first and then we can work out together how much cover you'd need and when you'd need it to start.",
+    type:"info", options:[], note:"", next:"ALWAYS:marital" },
 
   { id:"marital", section:"Situation",
     script:"Are you single, or do you have a partner or spouse?",
@@ -311,33 +292,23 @@ const ONE_CALL_STEPS = [
     next:"ALWAYS:existing_cover" },
 
   { id:"existing_cover", section:"Situation",
-    script:"Do you have any existing protection in place — any Life Insurance or Income Protection already?",
+    script:"I'll explain the Income Protection in a little more detail, but just so I've got the full picture, do you currently have any Income Protection, Life Insurance or Critical Illness Cover in place?",
     type:"tap", options:["No existing cover","Yes — Life Insurance","Yes — Income Protection","Yes — multiple policies"], ffKey:"existingCover", note:"",
     followUps:[
-      { optionIndex:1, inputs:[{key:"lifeProvider",label:"Provider",placeholder:"e.g. Aviva"},{key:"lifeCoverAmount",label:"Cover Amount (£)",placeholder:"300000",inputType:"number"},{key:"lifePremium",label:"Monthly Premium (£)",placeholder:"45",inputType:"number"}] },
+      { optionIndex:1, script:"Okay, perfect. Which insurer is that with?\n\nInsurers offer multi-product discount if you have multiple policies with them so I'll consider that when I look at the Income Protection", inputs:[{key:"lifeProvider",label:"Provider",placeholder:"e.g. Aviva"},{key:"lifeCoverAmount",label:"Cover Amount (£)",placeholder:"300000",inputType:"number"},{key:"lifePremium",label:"Monthly Premium (£)",placeholder:"45",inputType:"number"}] },
       { optionIndex:2, inputs:[{key:"existingIPDetail",label:"Policy details",placeholder:"e.g. Aviva, £2000/mo, 3 month deferred"}] },
       { optionIndex:3, inputs:[{key:"existingCoverDetail",label:"Brief overview of all policies",placeholder:"e.g. Life with Aviva, IP with LV="}] },
     ],
-    next:"ALWAYS:explain_ip" },
-
-  { id:"explain_ip", section:"Income Protection",
-    script:"Let me quickly explain how Income Protection works — it's very straightforward.",
-    subScript:"If you're signed off work by your GP due to illness or injury — whether that's a broken leg, cancer, depression, anything — this policy replaces your income each month, tax free, directly into your bank account. It keeps paying for as long as you're off work, right up to your retirement if need be. As long as your doctor signs you off, you're covered. Does that make sense?",
-    type:"tap", options:["Yes, makes sense","Can you explain more?"], note:"",
-    next:"IF:options[0]:outgoings|ELSE:explain_ip_more" },
-
-  { id:"explain_ip_more", section:"Income Protection",
-    script:"Think of it as a replacement salary paid by the insurer. If you broke your leg and couldn't work for 3 months, the policy pays your agreed monthly amount straight into your bank — like getting paid without working. You can claim as many times as you need throughout the policy, as long as you're signed off. Clear now?",
-    type:"tap", options:["Yes, got it"], note:"", next:"ALWAYS:outgoings" },
+    next:"ALWAYS:outgoings" },
 
   { id:"outgoings", section:"Monthly Benefit",
-    script:"To work out how much cover you'd need — what would you say your total monthly outgoings are? Everything: bills, rent or mortgage, food, travel, the lot.",
+    script:"You mentioned your rent/mortgage is £X per month. Roughly what would you say your total household outgoings are each month once we include things like bills, food, council tax — anything that you'd still need to pay if you weren't working?",
     type:"input",
     inputs:[{key:"totalOutgoings",label:"Total Monthly Outgoings (£)",placeholder:"3500",inputType:"number"}],
     note:"", next:"ALWAYS:benefit_check" },
 
   { id:"benefit_check", section:"Monthly Benefit",
-    script:"So if you weren't working, would [outgoings] a month be enough to keep everything covered?",
+    script:"Okay, based on everything you've told me, shall we start by looking at around £[benefit] per month of cover?",
     type:"tap", options:["Yes, that covers it","I'd need a bit more","I could manage on less"], ffKey:"benefitConfirm", note:"",
     followUps:[
       { optionIndex:1, script:"How much would you need?", inputs:[{key:"benefitAdjust",label:"Monthly amount needed (£)",placeholder:"e.g. 3800",inputType:"number"}] },
@@ -345,46 +316,47 @@ const ONE_CALL_STEPS = [
     next:"IF:marital=Partner / Spouse:partner_contribution|ELSE:sick_pay" },
 
   { id:"partner_contribution", section:"Monthly Benefit",
-    script:"Would your partner still be working and contributing to the bills if you were off sick — or would you need to cover everything yourself?",
+    script:"I know we're looking at the cover just for you, but it's helpful for me to understand the household finances as a whole.\n\nSo your household outgoings are around £X a month — roughly how much does your partner bring home each month? It just helps me understand what sort of shortfall there would be if your income stopped.",
+    subScript:"And how do you normally split the household outgoings between you?",
     type:"tap", options:["Partner would contribute","I'd need to cover it all"], ffKey:"partnerContrib", note:"",
     followUps:[
-      { optionIndex:0, script:"What's your partner's monthly take-home?", inputs:[{key:"partnerIncome",label:"Partner's Monthly Take-home (£)",placeholder:"2400",inputType:"number"}] },
+      { optionIndex:0, script:"And how do you normally split the household outgoings between you?", inputs:[{key:"partnerIncome",label:"Partner's Monthly Take-home (£)",placeholder:"2400",inputType:"number"}] },
     ],
     next:"ALWAYS:sick_pay" },
 
   { id:"sick_pay", section:"Waiting Period",
-    script:"Do you get any sick pay from your employer?",
+    script:"Next we need to work out how quickly you'd need the policy to start paying if you couldn't work — and we can tailor this around your circumstances.\n\nDo you receive any sick pay from your employer?",
     type:"tap", options:["Yes — full pay","Yes — partial pay","No sick pay","Self-employed — no sick pay"], ffKey:"sickPayType", note:"",
     followUps:[
       { optionIndex:0, script:"How long does it last at full pay?", inputs:[{key:"sickPayDuration",label:"Duration",type:"select",options:["1 month","2 months","3 months","4–6 months","6+ months"]}] },
       { optionIndex:1, script:"How long does it last at partial pay?", inputs:[{key:"sickPayDuration",label:"Duration",type:"select",options:["1 month","2 months","3 months","4–6 months","6+ months"]}] },
-      { optionIndex:2, script:"Do you have savings you could fall back on?", inputs:[{key:"savingsLevel",label:"Savings",type:"select",options:["No / very little","1–2 months worth","3+ months worth"]}] },
-      { optionIndex:3, script:"Do you have savings you could fall back on?", inputs:[{key:"savingsLevel",label:"Savings",type:"select",options:["No / very little","1–2 months worth","3+ months worth"]}] },
+      { optionIndex:2, script:"And do you have any savings you'd be comfortable relying on if you were off work?", inputs:[{key:"savingsYesNo",label:"Savings?",type:"select",options:["Yes","No"]},{key:"savingsLevel",label:"Savings (if yes)",type:"select",options:["No / very little","1–2 months worth","3+ months worth"]}] },
+      { optionIndex:3, script:"And do you have any savings you'd be comfortable relying on if you were off work?", inputs:[{key:"savingsYesNo",label:"Savings?",type:"select",options:["Yes","No"]},{key:"savingsLevel",label:"Savings (if yes)",type:"select",options:["No / very little","1–2 months worth","3+ months worth"]}] },
     ],
     next:"ALWAYS:deferred_explain" },
 
   { id:"deferred_explain", section:"Waiting Period",
-    script:"There's one thing called the deferred period — that's just how long you have to be off work before payments start. The longer you wait, the cheaper the policy. Based on what you've told me, I'd suggest a waiting period of [DEFERRED]. [DEFERRED_REASON].\n\nDoes that sound reasonable?",
+    script:"Okay, shall we start by looking at a [X]-month waiting period? Does that feel reasonable to you?",
     type:"tap", options:["Yes, sounds good","I'd prefer shorter","I'd prefer longer"], ffKey:"deferredConfirm", note:"", next:"ALWAYS:research_pause" },
 
   { id:"research_pause", section:"Summary",
-    script:"Perfect. So let me just quickly run those numbers and find you the most competitive option — give me 2 minutes.",
+    script:"Perfect. Give me around 10–15 minutes and I'll call you back, explain what I've found and take you through the options.\n\nAnd if you can grab a pen and paper for when I call back, that would be great.",
+    subScript:"What's the best number to reach you on, and what time suits you for me to call back?",
     type:"info", options:[], note:"In a one-call scenario, use this pause to run your quote software. Come back when you have the price.", next:"ALWAYS:summary_pitch" },
 
   { id:"summary_pitch", section:"Summary",
-    script:"Right — I've had a look across the market. So, what I'm recommending is a policy that pays you [benefit] per month if you're signed off work by your GP for any reason — after a [DEFERRED] wait — and it runs right up to your state pension age.\n\nThe most competitive provider right now is [PROVIDER], and the premium is [PREMIUM] per month. That's a fixed premium — it won't go up with age and it won't increase after a claim.\n\nIs that comfortable for you monthly?",
-    type:"tap", options:["Yes, comfortable","It's a bit much","Need to think about it"], ffKey:"affordability", note:"",
-    followUps:[
-      { optionIndex:1, script:"What sort of monthly amount would work?", inputs:[{key:"budget",label:"Target monthly amount (£)",placeholder:"35",inputType:"number"}] },
-    ],
+    script:"Perfect, any questions as I'm running through this please just stop me, ok?\n\nSo just to quickly recap, we're looking at a policy that will pay you £[benefit] per month in the event you're unable to work due to any illness or accident so you can still cover all your essential bills.\n\nThe policy will begin to pay you after a [DEFERRED] waiting period and cover you until age [SPA], so it gives you that safety net throughout your working life, ok?",
+    note:"If client provided budget, add: 'and the good news is, it looks like we can get everything you need within/around the budget you set'",
+    type:"tap", options:["Yes, go ahead","One moment…"], ffKey:"affordability",
     next:"ALWAYS:quote_type" },
 
   { id:"quote_type", section:"Summary",
-    script:"Just so you're fully informed — there are two types of Income Protection.\n\nThe full-term option pays right up to your state pension age if you can't return to work — maximum protection.\n\nThe short-term option pays for up to 2 years per claim, but you can claim unlimited times throughout the policy. It's more budget-friendly and suits a lot of people.\n\nI'd recommend the full-term option for you — but which would you like to go with?",
-    type:"tap", options:["Full term","Short term — 2 year","Show me both options"], ffKey:"quotePreference", note:"", next:"ALWAYS:life_upsell_check" },
+    script:"We've got a number of different insurers offering the cover but the one I'd recommend is [PROVIDER] as they [REASON]\n\nThe premium for everything would be £[PREMIUM] per month and that price is guaranteed, which means it will never increase with age, health or even if you make a claim on the policy — it will always remain fixed at £[PREMIUM] per month.",
+    subScript:"Like I said, there's plenty of other insurers offering the cover but they are all offering the same benefits so there's no point paying more than what you need to.\n\nSo basically, we're looking at £[PREMIUM] per month and that will give you £[benefit] monthly income after [DEFERRED], right through until age [SPA].\n\nHow does that sound?",
+    type:"tap", options:["Full term","Short term","Show me both options"], ffKey:"quotePreference", note:"", next:"ALWAYS:life_upsell_check" },
 
   { id:"life_upsell_check", section:"Life Cover",
-    script:"Just before we move to the final bit — I want to mention one other thing.",
+    script:"You can claim as many times as you need to on the policy without it affecting the price.\n\nWith a full-term policy, there is no limit on how long you can claim — for example if you suffered from something that prevented you from doing your job ever again, you would receive this income until you reach the end of the policy.\n\nWith a shorter-term policy, each time you're off work you can claim for a maximum of 1, 2 or 5 years. After that, you'd just need to return to work for 6 months before you can claim again for the same condition — and this can be more cost-effective.\n\nDoes that make sense?",
     type:"tap", options:["They have partner / kids / mortgage","Single, no dependants"], ffKey:"lifeUpsellRoute", note:"",
     next:"IF:options[0]:life_upsell_existing|ELSE:close" },
 
@@ -394,15 +366,16 @@ const ONE_CALL_STEPS = [
     next:"IF:options[0]:existing_life_review|ELSE:no_life_pitch" },
 
   { id:"no_life_pitch", section:"Life Cover",
-    script:"So Income Protection covers you if you can't work — but it doesn't pay out if you were to die. If that happened, your partner and family would still have the mortgage and bills, but without your income.\n\nAlongside this, I've looked at Life Insurance for you. I'd recommend a policy that would pay off the mortgage and protect your family financially if the worst happened. And actually, setting up both together often works out cheaper — some providers offer a multi-policy discount.\n\nShall I run through those numbers with you now?",
-    type:"tap", options:["Yes please","No thanks — just the IP"], ffKey:"lifeUpsell", note:"", next:"ALWAYS:close" },
+    script:"Now, we also briefly spoke about Life Insurance earlier.\n\nWhile the Income Protection protects you if you're unable to work, Life Insurance is there if you passed away — and this will provide a lump sum to help protect [your partner / children / mortgage / family] financially.\n\nWhat I'd recommend looking at is £[X] of Life Insurance over [X] years.\n\nThe premium for that would be £[X] per month. As with the Income Protection, the premium is guaranteed to remain the same throughout the whole policy.\n\nSo if you did the Life Insurance alongside the Income Protection, you'd be looking at £[X] per month in total.\n\nIs that comfortable?",
+    type:"tap", options:["Yes, comfortable","No thanks — just the IP"], ffKey:"lifeUpsell", note:"", next:"ALWAYS:close" },
 
   { id:"existing_life_review", section:"Life Cover",
-    script:"I've had a look at that policy. I just want to make sure it's still the right amount, the right type, and that it's still competitive — things change over time and sometimes existing policies aren't quite what they should be.\n\nWould you like me to quickly run through what I'd recommend alongside the IP?",
-    type:"tap", options:["Yes, please review it","No thanks — just the IP"], ffKey:"lifeReviewAgreed", note:"", next:"ALWAYS:close" },
+    script:"Now, as promised I also reviewed your existing cover with [INSURER] — and to be honest, I think there's a slightly better way you can run this policy.\n\nMy concern with it is [EXPLAIN SHORTFALL].\n\nSo what I would do instead is look at [RECOMMENDATION].\n\nThe cost for the policy is £[X] per month, so we're basically looking at an extra £[X] compared with what you're currently paying but will give you far better cover.\n\nWould the additional £[X] per month still be comfortable for you?",
+    type:"tap", options:["Yes, comfortable","No thanks — just the IP"], ffKey:"lifeReviewAgreed", note:"", next:"ALWAYS:close" },
 
   { id:"close", section:"Close",
-    script:"Perfect. So the last step is just a short set of medical questions — these are standard questions from the insurer, and based on what you've told me today, it should all be very straightforward. It takes about 5 minutes.\n\nWhile those are loading, let me tell you about a few of the added benefits you get with [PROVIDER] as part of this policy…",
+    script:"Perfect. All I need to do is go through a few health and lifestyle questions so we can make sure you can be accepted for the policy.",
+    subScript:"Just so you know as well, the policy also comes with [add relevant policy benefits e.g. 24/7 GP Service, fracture cover].\n\nSo there's some great additional support there alongside the core Income Protection, ok?",
     type:"info", options:[], note:"Mention 3 provider benefits and payout rate here — look these up in advance.", next:"ALWAYS:generate" },
 
   { id:"generate", section:"Advice",
