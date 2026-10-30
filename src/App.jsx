@@ -114,11 +114,9 @@ const TWO_CALL_STEPS = [
   { id:"c1_partner_contrib", section:"Monthly Benefit",
     script:"I know we're looking at the cover just for you, but it's helpful for me to understand the household finances as a whole.\n\nSo your household outgoings are around £X a month — roughly how much does your partner bring home each month? It just helps me understand what sort of shortfall there would be if your income stopped.",
     subScript:"And how do you normally split the household outgoings between you?",
-    type:"tap", options:["Partner would contribute","I'd need to cover it all"], ffKey:"partnerContrib", note:"",
-    followUps:[
-      { optionIndex:0, script:"And how do you normally split the household outgoings between you?", inputs:[{key:"partnerIncome",label:"Partner's Monthly Take-home (£)",placeholder:"2400",inputType:"number"}] },
-    ],
-    next:"ALWAYS:c1_sick_pay" },
+    type:"input",
+    inputs:[{key:"partnerIncome",label:"Partner's Monthly Take-home (£)",placeholder:"2400",inputType:"number"},{key:"outgoingsSplit",label:"How do they split outgoings?",placeholder:"e.g. 50/50, partner pays mortgage"}],
+    note:"", next:"ALWAYS:c1_sick_pay" },
 
   { id:"c1_sick_pay", section:"Waiting Period",
     script:"Next we need to work out how quickly you'd need the policy to start paying if you couldn't work — and we can tailor this around your circumstances.\n\nDo you receive any sick pay from your employer?",
@@ -318,11 +316,9 @@ const ONE_CALL_STEPS = [
   { id:"partner_contribution", section:"Monthly Benefit",
     script:"I know we're looking at the cover just for you, but it's helpful for me to understand the household finances as a whole.\n\nSo your household outgoings are around £X a month — roughly how much does your partner bring home each month? It just helps me understand what sort of shortfall there would be if your income stopped.",
     subScript:"And how do you normally split the household outgoings between you?",
-    type:"tap", options:["Partner would contribute","I'd need to cover it all"], ffKey:"partnerContrib", note:"",
-    followUps:[
-      { optionIndex:0, script:"And how do you normally split the household outgoings between you?", inputs:[{key:"partnerIncome",label:"Partner's Monthly Take-home (£)",placeholder:"2400",inputType:"number"}] },
-    ],
-    next:"ALWAYS:sick_pay" },
+    type:"input",
+    inputs:[{key:"partnerIncome",label:"Partner's Monthly Take-home (£)",placeholder:"2400",inputType:"number"},{key:"outgoingsSplit",label:"How do they split outgoings?",placeholder:"e.g. 50/50, partner pays mortgage"}],
+    note:"", next:"ALWAYS:sick_pay" },
 
   { id:"sick_pay", section:"Waiting Period",
     script:"Next we need to work out how quickly you'd need the policy to start paying if you couldn't work — and we can tailor this around your circumstances.\n\nDo you receive any sick pay from your employer?",
