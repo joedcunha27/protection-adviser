@@ -7,6 +7,22 @@ const MODEL="claude-sonnet-4-5";
 
 const fmt=n=>n?`£${Number(n).toLocaleString()}`:"—";
 const fmtM=n=>n?`£${Number(n).toLocaleString()}/mo`:"—";
+
+// ── OBJECTION HANDLERS ────────────────────────────────────────────────────────
+const OBJECTIONS = [
+  { label:"Wanted Quote Online",
+    script:"Yeah no problem at all, I just need you for 5 minutes so we can build the quote and get it sent over to you. Can you just give me a really brief overview of why you need the Income Protection?" },
+  { label:"No Longer Interested",
+    script:"Ok fair enough, well what I'd like to do is just get you a quote over so at least you've got something concrete to consider and then you can decide from there. Why were you looking into Income Protection in the first place?" },
+  { label:"Gone Elsewhere",
+    script:"We've got whole of market access with the best rates on the market with loads of added benefits too. This is something you'll have a long time so you want to make sure you've definitely got the best policy. Can you give me just 5 minutes and I can let you know what we can do for you?" },
+  { label:"Had Too Many Calls",
+    script:"I'm so sorry — we've had some technical issues over the last couple of days where our system isn't recognising where we've already called someone and it just loops back round again. I just need you for 5 minutes so we can build the quote and get it sent over to you. Can you just give me a really brief overview of why you need the Income Protection?" },
+  { label:"Wants Cover for Pre-Existing",
+    script:"Ok, so with Income Protection it won't cover a pre-existing condition that you already know is going to keep you off work. However, if you'd had Income Protection before this condition you would have been covered.\n\nWhat we should make sure now is that you have cover for any other condition or injury you might get in the future. You of all people can see that things do happen that can impact being able to work, so let's look at the options for covering every other condition.\n\nWhat do you do for a living?" },
+  { label:"Wants Cover for Uninsurable Sport",
+    script:"Ok, so unfortunately you can't get Income Protection to cover that sport because the insurers see it as too high risk. But what we can do is look at the options to cover you for any other reason you might be unable to work in terms of injury or illness.\n\nI know the sport is at the front of your mind, but actually you could be off work like any of us due to any reason — and if you don't get sick pay then you'll be in a difficult position financially.\n\nWhat do you do for a living?" },
+];
 function calcAge(d){if(!d)return null;const b=new Date(d),t=new Date();let a=t.getFullYear()-b.getFullYear();if(t.getMonth()-b.getMonth()<0||(t.getMonth()===b.getMonth()&&t.getDate()<b.getDate()))a--;return a>=0&&a<120?a:null;}
 function getSPA(d){if(!d)return 68;const b=new Date(d);if(b<new Date(1960,3,6))return 66;if(b<new Date(1977,3,6))return 67;return 68;}
 
@@ -550,6 +566,34 @@ function ScriptText({text,style}){
       {lines.map((line,i)=>(
         <span key={i}>{line}{i<lines.length-1&&<br/>}</span>
       ))}
+    </div>
+  );
+}
+
+// ── OBJECTIONS PANEL ─────────────────────────────────────────────────────────
+function ObjectionsPanel(){
+  const [active,setActive]=useState(null);
+  return(
+    <div style={{marginTop:16}}>
+      <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:"#6b7280",marginBottom:8}}>Objection Handlers</div>
+      <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:active!=null?12:0}}>
+        {OBJECTIONS.map((obj,i)=>(
+          <button key={i}
+            style={{fontSize:11,fontWeight:600,padding:"5px 10px",borderRadius:6,border:"1px solid",cursor:"pointer",transition:"all 0.15s",
+              background:active===i?"rgba(245,158,11,0.12)":"transparent",
+              borderColor:active===i?"rgba(245,158,11,0.5)":"rgba(255,255,255,0.12)",
+              color:active===i?"#f59e0b":"#9ca3af"}}
+            onClick={()=>setActive(active===i?null:i)}>
+            {obj.label}
+          </button>
+        ))}
+      </div>
+      {active!=null&&(
+        <div style={{background:"rgba(245,158,11,0.06)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:10,padding:"12px 14px",marginTop:4}}>
+          <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:"rgba(245,158,11,0.7)",marginBottom:8}}>SAY THIS</div>
+          <ScriptText text={OBJECTIONS[active].script} style={{fontSize:14,lineHeight:1.6,color:"#e5e7eb"}}/>
+        </div>
+      )}
     </div>
   );
 }
@@ -1118,7 +1162,9 @@ export default function App(){
                   <div style={S.sLbl}>SAY THIS</div>
                   <ScriptText text={enrichScript(step.script)} style={S.sTxt} />
                   {step.subScript&&<ScriptText text={enrichScript(step.subScript)} style={S.sSub} />}
-                </div></>}
+                </div>
+                {(step.id==="c1_intro"||step.id==="intro")&&<ObjectionsPanel/>}
+                </>}
               {step&&!result&&!loading&&<StepControls step={step} ff={ff} onAnswer={onAnswer} onInputNext={onInputNext}/>}
               {loading&&<div style={S.spin}><span style={{animation:"spin 1s linear infinite",display:"inline-block",color:A,fontSize:20}}>◌</span> Generating advice report…</div>}
               {error&&<div style={S.err}>{error}</div>}
